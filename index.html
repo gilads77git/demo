@@ -5,86 +5,73 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Deepdub.ai — Agent Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
   theme: {
     extend: {
       fontFamily: {
-        display: ['Syne', 'sans-serif'],
-        body: ['DM Sans', 'sans-serif'],
+        display: ['Inter', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
       },
       colors: {
-        bg: '#0a0a0f',
-        surface: '#111118',
-        card: '#15151e',
-        border: '#1e1e2e',
-        accent1: '#7c3aed',
-        accent2: '#2563eb',
-        neon: '#a855f7',
+        bg: '#0d0d12',
+        surface: '#13131a',
+        card: '#18181f',
+        border: '#222230',
+        accent1: '#FF007A',
+        accent2: '#7B2FFF',
+        neon: '#FF007A',
       },
-      boxShadow: {
-        neon: '0 0 20px rgba(168,85,247,0.4), 0 0 60px rgba(168,85,247,0.15)',
-        neon2: '0 0 20px rgba(37,99,235,0.4)',
-        card: '0 4px 32px rgba(0,0,0,0.5)',
-      }
     }
   }
 }
 </script>
 <style>
-  * { box-sizing: border-box; }
-  body { background: #0a0a0f; font-family: 'DM Sans', sans-serif; color: #e2e2f0; overflow-x: hidden; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d0d12; font-family: 'Inter', sans-serif; color: #e8e8f0; overflow-x: hidden; }
 
-  /* Gradient text */
-  .grad-text { background: linear-gradient(135deg, #a855f7, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-
-  /* Glowing border */
-  .glow-border { border: 1px solid rgba(168,85,247,0.3); box-shadow: 0 0 0 1px rgba(168,85,247,0.1) inset; }
+  /* Deepdub pink gradient text */
+  .grad-text { background: linear-gradient(90deg, #FF007A, #7B2FFF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .grad-text-blue { background: linear-gradient(90deg, #7B2FFF, #00C2FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
   /* Agent card */
-  .agent-card { transition: all 0.25s ease; cursor: pointer; border: 1px solid #1e1e2e; background: #15151e; }
-  .agent-card:hover { border-color: rgba(168,85,247,0.5); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(168,85,247,0.2); }
-  .agent-card.active { border-color: #a855f7; box-shadow: 0 0 24px rgba(168,85,247,0.35), 0 8px 32px rgba(168,85,247,0.15); background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(37,99,235,0.08)); }
+  .agent-card { transition: all 0.2s ease; cursor: pointer; border: 1px solid #222230; background: #18181f; border-radius: 14px; }
+  .agent-card:hover { border-color: rgba(255,0,122,0.4); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,0,122,0.15); }
+  .agent-card.active { border-color: #FF007A; box-shadow: 0 0 20px rgba(255,0,122,0.3), 0 4px 20px rgba(255,0,122,0.1); background: linear-gradient(135deg, rgba(255,0,122,0.08), rgba(123,47,255,0.06)); }
 
-  /* Waveform bars */
-  .wave-bar { width: 3px; border-radius: 999px; background: linear-gradient(180deg, #a855f7, #3b82f6); transform-origin: bottom; transition: background 0.4s ease; }
-  .wave-bar.idle { animation: wave-idle var(--dur, 1.2s) ease-in-out infinite alternate; }
-  .wave-bar.active { animation: wave-active var(--dur, 0.4s) ease-in-out infinite alternate; }
-  .wave-bar.urgent { background: linear-gradient(180deg, #f43f5e, #fb923c); }
-  .wave-bar.empathetic { background: linear-gradient(180deg, #34d399, #06b6d4); }
-
-  @keyframes wave-idle { from { transform: scaleY(0.15); } to { transform: scaleY(var(--max, 0.5)); } }
-  @keyframes wave-active { from { transform: scaleY(0.3); } to { transform: scaleY(var(--max, 1)); } }
+  /* Canvas wave styles */
+  #waveCanvas { image-rendering: pixelated; }
+  #waveformWrap { border-color: rgba(255,0,122,0.15) !important; background: #0a0a10 !important; }
 
   /* Mic button */
-  .mic-btn { position: relative; width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #2563eb); border: none; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; align-items: center; justify-content: center; }
-  .mic-btn:hover { transform: scale(1.07); box-shadow: 0 0 32px rgba(168,85,247,0.6); }
-  .mic-btn.listening { box-shadow: 0 0 0 0 rgba(168,85,247,0.7); animation: mic-pulse 1.2s ease infinite; }
+  .mic-btn { position: relative; width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #FF007A, #7B2FFF); border: none; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 24px rgba(255,0,122,0.4); }
+  .mic-btn:hover { transform: scale(1.07); box-shadow: 0 0 40px rgba(255,0,122,0.7); }
+  .mic-btn.listening { animation: mic-pulse 1.2s ease infinite; }
   @keyframes mic-pulse {
-    0% { box-shadow: 0 0 0 0 rgba(168,85,247,0.7); }
-    70% { box-shadow: 0 0 0 18px rgba(168,85,247,0); }
-    100% { box-shadow: 0 0 0 0 rgba(168,85,247,0); }
+    0% { box-shadow: 0 0 0 0 rgba(255,0,122,0.8); }
+    70% { box-shadow: 0 0 0 20px rgba(255,0,122,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,0,122,0); }
   }
 
   /* Chat bubbles */
   .bubble-user { background: #1e1e2e; border-radius: 18px 18px 4px 18px; }
-  .bubble-bot { background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(37,99,235,0.2)); border: 1px solid rgba(168,85,247,0.3); border-radius: 18px 18px 18px 4px; }
+  .bubble-bot { background: linear-gradient(135deg, rgba(255,0,122,0.15), rgba(123,47,255,0.12)); border: 1px solid rgba(255,0,122,0.25); border-radius: 18px 18px 18px 4px; }
 
   /* Vibe chips */
-  .vibe-chip { cursor: pointer; border: 1px solid #1e1e2e; border-radius: 999px; padding: 6px 16px; font-size: 13px; transition: all 0.2s; }
-  .vibe-chip:hover { border-color: rgba(168,85,247,0.5); }
-  .vibe-chip.active { background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(37,99,235,0.2)); border-color: #a855f7; color: #c084fc; }
+  .vibe-chip { cursor: pointer; border: 1px solid #222230; border-radius: 999px; padding: 6px 16px; font-size: 13px; transition: all 0.2s; color: #9090b0; }
+  .vibe-chip:hover { border-color: rgba(255,0,122,0.4); color: #e8e8f0; }
+  .vibe-chip.active { background: linear-gradient(135deg, rgba(255,0,122,0.15), rgba(123,47,255,0.1)); border-color: #FF007A; color: #FF007A; }
 
   /* Language flags */
-  .lang-chip { cursor: pointer; border: 1px solid #1e1e2e; border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; transition: all 0.2s; text-align: center; }
-  .lang-chip:hover { border-color: rgba(168,85,247,0.5); background: rgba(168,85,247,0.08); }
-  .lang-chip.active { border-color: #a855f7; background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(37,99,235,0.15)); color: #c084fc; box-shadow: 0 0 12px rgba(168,85,247,0.2); }
+  .lang-chip { cursor: pointer; border: 1px solid #222230; border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; transition: all 0.2s; text-align: center; color: #9090b0; }
+  .lang-chip:hover { border-color: rgba(255,0,122,0.4); background: rgba(255,0,122,0.06); color: #e8e8f0; }
+  .lang-chip.active { border-color: #FF007A; background: linear-gradient(135deg, rgba(255,0,122,0.15), rgba(123,47,255,0.1)); color: #FF007A; box-shadow: 0 0 10px rgba(255,0,122,0.2); }
 
   /* Range slider */
-  input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; background: linear-gradient(to right, #7c3aed, #2563eb); outline: none; }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: white; box-shadow: 0 0 10px rgba(168,85,247,0.6); cursor: pointer; }
+  input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; background: linear-gradient(to right, #FF007A, #7B2FFF); outline: none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: white; box-shadow: 0 0 10px rgba(255,0,122,0.6); cursor: pointer; }
 
   /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; }
@@ -92,25 +79,25 @@ tailwind.config = {
   ::-webkit-scrollbar-thumb { background: #2e2e44; border-radius: 2px; }
 
   /* Clone button */
-  .clone-btn { background: linear-gradient(135deg, #7c3aed, #2563eb); border: none; border-radius: 12px; padding: 14px 24px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.08em; cursor: pointer; transition: all 0.25s; width: 100%; color: white; }
-  .clone-btn:hover { box-shadow: 0 0 30px rgba(168,85,247,0.5), 0 8px 24px rgba(0,0,0,0.4); transform: translateY(-1px); }
+  .clone-btn { background: linear-gradient(135deg, #FF007A, #7B2FFF); border: none; border-radius: 12px; padding: 14px 24px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.04em; cursor: pointer; transition: all 0.25s; width: 100%; color: white; box-shadow: 0 0 20px rgba(255,0,122,0.35); }
+  .clone-btn:hover { box-shadow: 0 0 40px rgba(255,0,122,0.6), 0 8px 24px rgba(0,0,0,0.4); transform: translateY(-2px); }
 
   /* CTA button */
-  .cta-btn { background: linear-gradient(135deg, #7c3aed, #2563eb); border: none; border-radius: 14px; padding: 18px 40px; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.05em; cursor: pointer; transition: all 0.3s; color: white; }
-  .cta-btn:hover { box-shadow: 0 0 40px rgba(168,85,247,0.6), 0 12px 40px rgba(37,99,235,0.3); transform: translateY(-2px) scale(1.01); }
+  .cta-btn { background: linear-gradient(90deg, #FF007A, #7B2FFF); border: none; border-radius: 999px; padding: 18px 40px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.04em; cursor: pointer; transition: all 0.3s; color: white; box-shadow: 0 0 30px rgba(255,0,122,0.4); }
+  .cta-btn:hover { box-shadow: 0 0 50px rgba(255,0,122,0.7), 0 12px 40px rgba(123,47,255,0.3); transform: translateY(-2px) scale(1.01); }
 
   /* Avatar ring */
-  .avatar-ring { padding: 2px; border-radius: 50%; background: linear-gradient(135deg, #a855f7, #3b82f6); }
+  .avatar-ring { padding: 2px; border-radius: 50%; background: linear-gradient(135deg, #FF007A, #7B2FFF); }
 
   /* Noise overlay */
   body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1000; opacity: 0.4; }
 
   /* Ambient glows */
-  .ambient-1 { position: fixed; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%); top: -200px; left: -200px; pointer-events: none; }
-  .ambient-2 { position: fixed; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(37,99,235,0.07) 0%, transparent 70%); bottom: -150px; right: -100px; pointer-events: none; }
+  .ambient-1 { position: fixed; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle, rgba(255,0,122,0.06) 0%, transparent 70%); bottom: -300px; left: -200px; pointer-events: none; }
+  .ambient-2 { position: fixed; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(123,47,255,0.07) 0%, transparent 70%); bottom: -200px; right: -100px; pointer-events: none; }
 
   /* Status dot */
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 8px #4ade80; animation: blink 2s ease infinite; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; animation: blink 2s ease infinite; }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
   /* Typing dots */
@@ -119,9 +106,23 @@ tailwind.config = {
   .typing span:nth-child(3) { animation-delay: 0.4s; }
   @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
+  @keyframes speakerPulse { from { opacity:0.5; transform:scale(0.95); filter:drop-shadow(0 0 4px #FF007A); } to { opacity:1; transform:scale(1.08); filter:drop-shadow(0 0 8px #FF007A); } }
+
+  @keyframes callRing { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
+
   /* Fade in */
   .fade-in { animation: fadeIn 0.4s ease forwards; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Toggle button pulse states */
+  @keyframes idlePulse {
+    0%, 100% { box-shadow: 0 0 28px rgba(255,0,122,0.45), 0 0 60px rgba(255,0,122,0.15); }
+    50% { box-shadow: 0 0 42px rgba(255,0,122,0.75), 0 0 80px rgba(255,0,122,0.3); }
+  }
+  @keyframes livePulse {
+    0%, 100% { box-shadow: 0 0 24px rgba(220,38,38,0.5), 0 0 60px rgba(220,38,38,0.2); }
+    50% { box-shadow: 0 0 40px rgba(220,38,38,0.85), 0 0 90px rgba(220,38,38,0.35); }
+  }
 </style>
 </head>
 <body>
@@ -129,40 +130,32 @@ tailwind.config = {
 <div class="ambient-2"></div>
 
 <!-- Header -->
-<header style="border-bottom: 1px solid #1e1e2e; background: rgba(10,10,15,0.9); backdrop-filter: blur(12px);" class="sticky top-0 z-50 px-6 py-3 flex items-center justify-between">
-  <div class="flex items-center gap-3">
-    <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#2563eb);display:flex;align-items:center;justify-content:center;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+<header style="border-bottom:1px solid #1e1e2e;background:rgba(13,13,18,0.95);backdrop-filter:blur(16px);" class="sticky top-0 z-50 px-8 py-4 flex items-center">
+  <div class="flex items-center gap-2">
+    <div style="display:flex;gap:3px;align-items:center;">
+      <div style="width:8px;height:20px;border-radius:4px;background:#FF007A;"></div>
+      <div style="width:8px;height:14px;border-radius:4px;background:#FF007A;opacity:0.6;"></div>
     </div>
-    <span class="font-display font-800 text-lg tracking-tight" style="font-family:'Syne',sans-serif;font-weight:800;">deepdub<span class="grad-text">.ai</span></span>
-    <span style="background:#1e1e2e;border:1px solid #2e2e44;border-radius:6px;padding:2px 8px;font-size:11px;color:#7c7c9a;font-weight:600;">AGENT STUDIO</span>
-  </div>
-  <div class="flex items-center gap-4">
-    <div class="flex items-center gap-2">
-      <div class="status-dot"></div>
-      <span style="font-size:12px;color:#7c7c9a;">Studio Active</span>
-    </div>
-    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">JD</div>
+    <span style="font-family:'Inter',sans-serif;font-weight:700;font-size:18px;color:#ffffff;letter-spacing:-0.02em;">Deepdub</span>
   </div>
 </header>
 
 <!-- Main 3-column layout -->
-<main class="px-4 pt-6 pb-4" style="max-width:1400px;margin:0 auto;">
+<main class="px-4 pt-5 pb-4" style="max-width:1400px;margin:0 auto;">
   <div class="grid gap-4" style="grid-template-columns: 280px 1fr 280px;">
 
     <!-- ======= COLUMN 1: Agent Selection ======= -->
-    <div class="flex flex-col gap-4">
-      <div>
-        <p style="font-size:11px;letter-spacing:0.12em;color:#7c7c9a;font-weight:600;margin-bottom:12px;">AGENT PRESETS</p>
+    <div style="background:#13131a;border:1px solid #1e1e2e;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:14px;">
+      <p style="font-size:13px;font-weight:700;color:#e8e8f0;margin-bottom:14px;letter-spacing:-0.01em;">Agent Presets &amp; Cloning</p>
         <div class="flex flex-col gap-3" id="agentCards">
 
           <!-- Maya -->
           <div class="agent-card active rounded-2xl p-3 flex items-center gap-3" data-agent="Maya" data-role="Support · Warm" data-color="#f472b6">
             <div class="avatar-ring flex-shrink-0">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f472b6,#c084fc);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;">M</div>
+              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#FF007A,#7B2FFF);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:700;font-size:16px;">M</div>
             </div>
             <div class="flex-1 min-w-0">
-              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">Maya</div>
+              <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;">Maya</div>
               <div style="font-size:12px;color:#7c7c9a;">Support · Warm</div>
             </div>
             <div style="width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;" id="maya-dot"></div>
@@ -170,139 +163,218 @@ tailwind.config = {
 
           <!-- David -->
           <div class="agent-card rounded-2xl p-3 flex items-center gap-3" data-agent="David" data-role="Sales · Authoritative" data-color="#60a5fa">
-            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;flex-shrink:0;">D</div>
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:700;font-size:16px;flex-shrink:0;">D</div>
             <div class="flex-1 min-w-0">
-              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">David</div>
+              <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;">David</div>
               <div style="font-size:12px;color:#7c7c9a;">Sales · Authoritative</div>
             </div>
           </div>
 
           <!-- Sam -->
           <div class="agent-card rounded-2xl p-3 flex items-center gap-3" data-agent="Sam" data-role="Neutral · Pro" data-color="#34d399">
-            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#34d399,#059669);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;flex-shrink:0;">S</div>
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#34d399,#059669);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:700;font-size:16px;flex-shrink:0;">S</div>
             <div class="flex-1 min-w-0">
-              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">Sam</div>
+              <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;">Sam</div>
               <div style="font-size:12px;color:#7c7c9a;">Neutral · Pro</div>
             </div>
           </div>
 
           <!-- Kai -->
           <div class="agent-card rounded-2xl p-3 flex items-center gap-3" data-agent="Kai" data-role="High Energy" data-color="#fb923c">
-            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#fb923c,#dc2626);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;flex-shrink:0;">K</div>
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#fb923c,#dc2626);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:700;font-size:16px;flex-shrink:0;">K</div>
             <div class="flex-1 min-w-0">
-              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">Kai</div>
+              <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;">Kai</div>
               <div style="font-size:12px;color:#7c7c9a;">High Energy</div>
             </div>
           </div>
         </div>
-      </div>
 
       <!-- Master Clone -->
-      <div style="background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(37,99,235,0.08));border:1px solid rgba(168,85,247,0.3);border-radius:16px;padding:20px;" class="mt-2">
+      <div style="background:linear-gradient(135deg,rgba(255,0,122,0.08),rgba(123,47,255,0.06));border:1px solid rgba(255,0,122,0.25);border-radius:16px;padding:20px;" class="mt-2">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
           <div style="width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#7c3aed,#2563eb);display:flex;align-items:center;justify-content:center;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
           </div>
-          <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;" class="grad-text">Master Clone</span>
+          <span style="font-family:'Inter',sans-serif;font-weight:700;font-size:15px;" class="grad-text">Master Clone</span>
         </div>
-        <p style="font-size:12px;color:#9090b0;line-height:1.6;margin-bottom:16px;">Instantly replicate your own voice identity to speak any language with perfect emotional accuracy.</p>
-        <button class="clone-btn" onclick="triggerClone(this)">⚡ CLONE MY VOICE</button>
-      </div>
-
-      <!-- Voice stats -->
-      <div style="background:#15151e;border:1px solid #1e1e2e;border-radius:16px;padding:16px;">
-        <p style="font-size:11px;letter-spacing:0.1em;color:#7c7c9a;font-weight:600;margin-bottom:12px;">VOICE METRICS</p>
-        <div class="flex flex-col gap-2">
-          <div class="flex justify-between items-center">
-            <span style="font-size:12px;color:#9090b0;">Clarity</span>
-            <div style="flex:1;margin:0 10px;height:3px;background:#1e1e2e;border-radius:2px;overflow:hidden;"><div style="width:92%;height:100%;background:linear-gradient(90deg,#7c3aed,#3b82f6);border-radius:2px;"></div></div>
-            <span style="font-size:12px;color:#c084fc;font-weight:600;">92%</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span style="font-size:12px;color:#9090b0;">Emotion</span>
-            <div style="flex:1;margin:0 10px;height:3px;background:#1e1e2e;border-radius:2px;overflow:hidden;"><div style="width:78%;height:100%;background:linear-gradient(90deg,#7c3aed,#3b82f6);border-radius:2px;"></div></div>
-            <span style="font-size:12px;color:#c084fc;font-weight:600;">78%</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span style="font-size:12px;color:#9090b0;">Naturalness</span>
-            <div style="flex:1;margin:0 10px;height:3px;background:#1e1e2e;border-radius:2px;overflow:hidden;"><div style="width:95%;height:100%;background:linear-gradient(90deg,#7c3aed,#3b82f6);border-radius:2px;"></div></div>
-            <span style="font-size:12px;color:#c084fc;font-weight:600;">95%</span>
+        <p style="font-size:12px;color:#9090b0;line-height:1.6;margin-bottom:12px;">Instantly replicate your own voice identity to speak any language with perfect emotional accuracy.</p>
+        <!-- Clone status area -->
+        <div id="cloneStatus" style="display:none;background:#0a0a10;border:1px solid #1e1e2e;border-radius:12px;padding:12px;margin-bottom:12px;">
+          <div id="cloneStatusText" style="font-size:11px;color:#c084fc;font-weight:600;letter-spacing:0.08em;margin-bottom:8px;text-align:center;">● RECORDING YOUR VOICE...</div>
+          <!-- Mini waveform for clone recording -->
+          <div id="cloneWave" style="display:flex;align-items:flex-end;justify-content:center;gap:2px;height:32px;"></div>
+        </div>
+        <!-- Language playback buttons (shown after clone) -->
+        <div id="cloneLangPlayback" style="display:none;margin-bottom:12px;">
+          <p style="font-size:10px;color:#7c7c9a;font-weight:600;letter-spacing:0.1em;margin-bottom:8px;">YOUR VOICE IN:</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <button class="clone-lang-btn" onclick="playCloneLang('EN','English')" style="background:#1e1e2e;border:1px solid #2e2e44;border-radius:8px;padding:5px 10px;font-size:12px;color:#e2e2f0;cursor:pointer;transition:all 0.2s;">🇺🇸 EN</button>
+            <button class="clone-lang-btn" onclick="playCloneLang('ES','Spanish')" style="background:#1e1e2e;border:1px solid #2e2e44;border-radius:8px;padding:5px 10px;font-size:12px;color:#e2e2f0;cursor:pointer;transition:all 0.2s;">🇪🇸 ES</button>
+            <button class="clone-lang-btn" onclick="playCloneLang('FR','French')" style="background:#1e1e2e;border:1px solid #2e2e44;border-radius:8px;padding:5px 10px;font-size:12px;color:#e2e2f0;cursor:pointer;transition:all 0.2s;">🇫🇷 FR</button>
+            <button class="clone-lang-btn" onclick="playCloneLang('JP','Japanese')" style="background:#1e1e2e;border:1px solid #2e2e44;border-radius:8px;padding:5px 10px;font-size:12px;color:#e2e2f0;cursor:pointer;transition:all 0.2s;">🇯🇵 JP</button>
+            <button class="clone-lang-btn" onclick="playCloneLang('DE','German')" style="background:#1e1e2e;border:1px solid #2e2e44;border-radius:8px;padding:5px 10px;font-size:12px;color:#e2e2f0;cursor:pointer;transition:all 0.2s;">🇩🇪 DE</button>
+            <button class="clone-lang-btn" onclick="playCloneLang('IT','Italian')" style="background:#1e1e2e;border:1px solid #2e2e44;border-radius:8px;padding:5px 10px;font-size:12px;color:#e2e2f0;cursor:pointer;transition:all 0.2s;">🇮🇹 IT</button>
           </div>
         </div>
+        <button class="clone-btn" id="cloneBtn" onclick="triggerClone(this)">⚡ CLONE MY VOICE</button>
       </div>
     </div>
 
     <!-- ======= COLUMN 2: Live Interaction Hub ======= -->
-    <div style="background:#111118;border:1px solid #1e1e2e;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:16px;">
+    <div style="background:#13131a;border:1px solid #1e1e2e;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:14px;">
 
       <!-- Active agent header -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div id="centerAvatar" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f472b6,#c084fc);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:18px;border:2px solid rgba(168,85,247,0.5);">M</div>
+          <div id="centerAvatar" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#FF007A,#7B2FFF);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:700;font-size:18px;border:2px solid rgba(168,85,247,0.5);">M</div>
           <div>
-            <div id="centerName" style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;">Maya</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div id="centerName" style="font-family:'Inter',sans-serif;font-weight:700;font-size:16px;color:#e8e8f0;">Maya</div>
+              <div id="speakerIcon" style="display:none;animation:speakerPulse 0.8s ease infinite alternate;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF007A" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </div>
+            </div>
             <div id="centerRole" style="font-size:12px;color:#7c7c9a;">Support · Warm · Active</div>
           </div>
         </div>
-        <div class="flex items-center gap-2" style="background:#15151e;border:1px solid #1e1e2e;border-radius:10px;padding:8px 14px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 14.14 14.14"/></svg>
-          <span id="activeLang" style="font-size:13px;font-weight:600;color:#c084fc;">ES</span>
+        <div class="flex items-center gap-2" style="background:#18181f;border:1px solid #1e1e2e;border-radius:10px;padding:8px 14px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF007A" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 14.14 14.14"/></svg>
+          <span id="activeLang" style="font-size:13px;font-weight:600;color:#FF007A;">ES</span>
           <span style="font-size:12px;color:#7c7c9a;">output</span>
         </div>
       </div>
 
-      <!-- Waveform -->
-      <div style="background:#0d0d14;border:1px solid #1e1e2e;border-radius:16px;padding:20px 16px;display:flex;align-items:flex-end;justify-content:center;gap:3px;height:100px;" id="waveform">
+      <!-- Waveform Canvas -->
+      <div style="background:#0a0a10;border:1px solid rgba(168,85,247,0.2);border-radius:20px;overflow:hidden;position:relative;" id="waveformWrap">
+        <canvas id="waveCanvas" style="display:block;width:100%;"></canvas>
+        <!-- Glow layer -->
+        <div style="position:absolute;inset:0;pointer-events:none;border-radius:20px;box-shadow:inset 0 0 60px rgba(168,85,247,0.08);"></div>
       </div>
 
-      <!-- Status + Mic -->
-      <div class="flex flex-col items-center gap-3">
-        <div id="statusText" style="font-size:12px;color:#7c7c9a;letter-spacing:0.08em;">CLICK MIC TO SPEAK</div>
-        <button class="mic-btn" id="micBtn" onclick="toggleMic()">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+      <!-- Status + Toggle Button -->
+      <div class="flex flex-col items-center gap-3" style="margin-top:16px;">
+        <div id="statusText" style="font-size:12px;color:#7c7c9a;letter-spacing:0.08em;min-height:18px;transition:all 0.3s;"></div>
+        <!-- AI Analyzing indicator -->
+        <div id="aiAnalyzing" style="display:none;align-items:center;gap:8px;background:rgba(123,47,255,0.12);border:1px solid rgba(123,47,255,0.35);border-radius:999px;padding:6px 16px;">
+          <div style="display:flex;gap:3px;align-items:center;">
+            <div style="width:5px;height:5px;border-radius:50%;background:#a855f7;animation:bounce 1.2s ease infinite;"></div>
+            <div style="width:5px;height:5px;border-radius:50%;background:#a855f7;animation:bounce 1.2s ease infinite 0.2s;"></div>
+            <div style="width:5px;height:5px;border-radius:50%;background:#a855f7;animation:bounce 1.2s ease infinite 0.4s;"></div>
+          </div>
+          <span style="font-size:11px;color:#a855f7;font-weight:700;letter-spacing:0.1em;">AI ANALYZING...</span>
+        </div>
+        <button id="sessionToggleBtn" onclick="toggleSession()" style="
+          border: none; border-radius: 999px;
+          padding: 16px 40px;
+          font-family: 'Inter', sans-serif;
+          font-weight: 800; font-size: 13px;
+          letter-spacing: 0.1em; cursor: pointer;
+          transition: all 0.3s ease;
+          background: linear-gradient(135deg, #FF007A, #7B2FFF);
+          color: white;
+          box-shadow: 0 0 28px rgba(255,0,122,0.45), 0 0 60px rgba(255,0,122,0.15);
+          animation: idlePulse 2.5s ease infinite;
+        ">START CONVERSATION</button>
+      </div>
+
+      <!-- Single Speaker Display -->
+      <div style="background:#0d0d14;border:1px solid #1e1e2e;border-radius:14px;padding:16px 18px;min-height:70px;display:flex;align-items:center;gap:12px;">
+        <div id="chatSpeakerAvatar" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#FF007A,#7B2FFF);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">M</div>
+        <div style="flex:1;">
+          <div id="chatSpeakerName" style="font-size:10px;color:#7c7c9a;font-weight:600;margin-bottom:4px;letter-spacing:0.08em;">MAYA · BOT</div>
+          <div id="chatSpeakerText" style="font-size:14px;color:#e2e2f0;line-height:1.5;"></div>
+        </div>
+      </div>
+
+      <!-- Inline CTA -->
+      <div style="margin-top:auto;padding-top:16px;">
+        <button class="cta-btn" style="font-size:17px;padding:22px 48px;letter-spacing:0.06em;width:100%;" onclick="openSalesModal()">
+          Talk to Sales
         </button>
       </div>
 
-      <!-- Chat log -->
-      <div style="flex:1;min-height:0;background:#0d0d14;border:1px solid #1e1e2e;border-radius:16px;padding:14px;overflow-y:auto;max-height:260px;display:flex;flex-direction:column;gap:10px;" id="chatLog">
-        <!-- Intro bot message -->
-        <div class="fade-in flex items-start gap-2">
-          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#f472b6,#c084fc);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">M</div>
-          <div>
-            <div style="font-size:11px;color:#7c7c9a;margin-bottom:4px;">Maya · Bot</div>
-            <div class="bubble-bot" style="padding:10px 14px;font-size:13px;line-height:1.5;">Hola, soy Maya. ¿En qué puedo ayudarte hoy? <span style="opacity:0.6;font-size:11px;">• ES</span></div>
+      <!-- Virtual Sales Call Modal -->
+      <div id="salesModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;">
+
+        <!-- STATE 1: Dialing -->
+        <div id="callStateDial" style="display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center;padding:40px;">
+          <!-- Pulsing phone rings -->
+          <div style="position:relative;width:120px;height:120px;display:flex;align-items:center;justify-content:center;">
+            <div class="call-ring" style="position:absolute;width:120px;height:120px;border-radius:50%;border:2px solid rgba(74,222,128,0.6);animation:callRing 1.5s ease-out infinite;"></div>
+            <div class="call-ring" style="position:absolute;width:90px;height:90px;border-radius:50%;border:2px solid rgba(74,222,128,0.5);animation:callRing 1.5s ease-out infinite 0.4s;"></div>
+            <div class="call-ring" style="position:absolute;width:60px;height:60px;border-radius:50%;border:2px solid rgba(74,222,128,0.4);animation:callRing 1.5s ease-out infinite 0.8s;"></div>
+            <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(16,185,129,0.5);">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.42 2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.64a16 16 0 0 0 5.45 5.45l1.41-1.41a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
           </div>
+          <div>
+            <div style="font-family:'Inter',sans-serif;font-weight:800;font-size:22px;color:#e2e2f0;margin-bottom:8px;">Connecting to Deepdub Sales Executive...</div>
+            <div id="ringText" style="font-size:14px;color:#4ade80;letter-spacing:0.1em;font-weight:600;">Ring...</div>
+          </div>
+          <button onclick="closeSalesModal()" style="background:rgba(244,63,94,0.15);border:1px solid rgba(244,63,94,0.4);border-radius:999px;padding:10px 28px;color:#f87171;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancel</button>
         </div>
+
+        <!-- STATE 2: Connected -->
+        <div id="callStateConnected" style="display:none;flex-direction:column;align-items:center;gap:20px;text-align:center;padding:40px;max-width:480px;width:100%;">
+          <!-- Connected header -->
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.4);border-radius:999px;padding:8px 20px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;animation:blink 1s ease infinite;"></div>
+            <span style="font-size:13px;color:#4ade80;font-weight:700;letter-spacing:0.08em;">CONNECTED · LIVE CALL</span>
+          </div>
+          <!-- Sales exec avatar -->
+          <div style="position:relative;">
+            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#059669,#0284c7);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:800;font-size:28px;color:white;border:3px solid rgba(16,185,129,0.6);box-shadow:0 0 30px rgba(16,185,129,0.3);">SE</div>
+            <div style="position:absolute;bottom:2px;right:2px;width:16px;height:16px;border-radius:50%;background:#4ade80;border:2px solid #111118;box-shadow:0 0 6px #4ade80;"></div>
+          </div>
+          <div>
+            <div style="font-family:'Inter',sans-serif;font-weight:800;font-size:18px;color:#e2e2f0;">Sales Executive</div>
+            <div style="font-size:12px;color:#4ade80;margin-top:2px;">Deepdub · Virtual Partner</div>
+          </div>
+          <!-- Call waveform -->
+          <div id="callWave" style="display:flex;align-items:flex-end;justify-content:center;gap:3px;height:40px;width:200px;"></div>
+          <!-- Message bubble -->
+          <div style="background:linear-gradient(135deg,rgba(5,150,105,0.2),rgba(2,132,199,0.15));border:1px solid rgba(16,185,129,0.3);border-radius:16px;padding:16px 20px;text-align:left;">
+            <div style="font-size:11px;color:#4ade80;font-weight:600;margin-bottom:8px;letter-spacing:0.08em;">SALES EXEC · VIRTUAL</div>
+            <div style="font-size:14px;color:#e2e2f0;line-height:1.6;" id="salesExecMsg"></div>
+          </div>
+          <!-- Hang up -->
+          <button onclick="hangUpCall()" style="background:linear-gradient(135deg,#dc2626,#991b1b);border:none;border-radius:999px;padding:14px 36px;color:white;font-family:'Inter',sans-serif;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 0 20px rgba(220,38,38,0.4);transition:all 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M23.36 14.6c-.36-.31-4.01-2.74-4.95-2.63-.46.05-.81.37-1.62 1.28-.28.32-.56.63-.76.81a10.34 10.34 0 0 1-2.64-1.72 10.34 10.34 0 0 1-1.72-2.64c.18-.2.49-.48.81-.76.91-.81 1.23-1.16 1.28-1.62.11-.93-2.32-4.59-2.63-4.95a1.5 1.5 0 0 0-1.1-.43C8.35 2 2 8.18 2 9.28c0 .23.04 5.84 7.39 13.21C16.72 29.96 22.49 22 22.72 22c1.1 0 7.28-6.35 7.28-8.03a1.5 1.5 0 0 0-.64-1.37z"/></svg>
+            Hang Up
+          </button>
+        </div>
+
       </div>
+
     </div>
 
-    <!-- ======= COLUMN 3: Customization & Controls ======= -->
-    <div class="flex flex-col gap-4">
+    <!-- ======= COLUMN 3: Controls ======= -->
+    <div style="background:#13131a;border:1px solid #1e1e2e;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:14px;">
 
       <!-- Emotion & Vibe -->
-      <div style="background:#15151e;border:1px solid #1e1e2e;border-radius:16px;padding:18px;">
-        <p style="font-size:11px;letter-spacing:0.12em;color:#7c7c9a;font-weight:600;margin-bottom:14px;">EMOTION & VIBE</p>
-
-        <div style="margin-bottom:16px;">
-          <div class="flex justify-between items-center" style="margin-bottom:8px;">
-            <span style="font-size:11px;color:#9090b0;">Empathetic</span>
-            <span style="font-size:11px;color:#9090b0;background:#1e1e2e;padding:2px 8px;border-radius:999px;" id="toneLabel">Neutral</span>
-            <span style="font-size:11px;color:#9090b0;">Urgent</span>
-          </div>
-          <input type="range" min="0" max="100" value="50" id="toneSlider" oninput="updateTone(this.value)">
+      <div style="background:#18181f;border:1px solid #1e1e2e;border-radius:16px;padding:18px;">
+        <p style="font-size:11px;letter-spacing:0.12em;color:#9090b0;font-weight:600;font-size:11px;letter-spacing:0.1em;margin-bottom:14px;">EMOTION</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="emotionGrid">
+          <div class="vibe-chip active" onclick="selectEmotion(this)" style="text-align:center;">🤝 Empathy</div>
+          <div class="vibe-chip" onclick="selectEmotion(this)" style="text-align:center;">💪 Confidence</div>
+          <div class="vibe-chip" onclick="selectEmotion(this)" style="text-align:center;">⚡ Enthusiasm</div>
+          <div class="vibe-chip" onclick="selectEmotion(this)" style="text-align:center;">🙏 Apologetic</div>
+          <div class="vibe-chip" onclick="selectEmotion(this)" style="text-align:center;grid-column:1/-1;">😊 Friendly</div>
         </div>
-
-        <p style="font-size:11px;color:#7c7c9a;margin-bottom:8px;font-weight:600;">VIBE</p>
-        <div class="flex flex-wrap gap-2" id="vibeChips">
-          <div class="vibe-chip" onclick="toggleVibe(this)">Professional</div>
-          <div class="vibe-chip active" onclick="toggleVibe(this)">Friendly</div>
-          <div class="vibe-chip" onclick="toggleVibe(this)" style="border-color:rgba(244,63,94,0.3);color:#fb7185;">⚡ Crisis Mode</div>
+        <!-- Intensity slider — shown after selection -->
+        <div id="emotionSliderWrap" style="margin-top:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:11px;color:#9090b0;">Subtle</span>
+            <span id="emotionIntensityLabel" style="font-size:11px;color:#c084fc;background:#1e1e2e;padding:2px 10px;border-radius:999px;font-weight:600;">Medium</span>
+            <span style="font-size:11px;color:#9090b0;">Intense</span>
+          </div>
+          <input type="range" min="0" max="100" value="50" id="emotionIntensity" oninput="updateEmotionIntensity(this.value)">
         </div>
       </div>
 
       <!-- Language Multiplier -->
-      <div style="background:#15151e;border:1px solid #1e1e2e;border-radius:16px;padding:18px;">
-        <p style="font-size:11px;letter-spacing:0.12em;color:#7c7c9a;font-weight:600;margin-bottom:14px;">LANGUAGE OUTPUT</p>
+      <div style="background:#18181f;border:1px solid #1e1e2e;border-radius:16px;padding:18px;">
+        <p style="font-size:11px;letter-spacing:0.12em;color:#9090b0;font-weight:600;font-size:11px;letter-spacing:0.1em;margin-bottom:14px;">LANGUAGE OUTPUT</p>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;" id="langGrid">
           <div class="lang-chip" onclick="selectLang(this,'EN')" data-lang="EN">🇺🇸 EN</div>
           <div class="lang-chip active" onclick="selectLang(this,'ES')" data-lang="ES">🇪🇸 ES</div>
@@ -312,126 +384,390 @@ tailwind.config = {
           <div class="lang-chip" onclick="selectLang(this,'IT')" data-lang="IT">🇮🇹 IT</div>
         </div>
       </div>
-
-      <!-- Session Stats -->
-      <div style="background:#15151e;border:1px solid #1e1e2e;border-radius:16px;padding:18px;">
-        <p style="font-size:11px;letter-spacing:0.12em;color:#7c7c9a;font-weight:600;margin-bottom:14px;">SESSION STATS</p>
-        <div class="flex flex-col gap-3">
-          <div class="flex justify-between">
-            <span style="font-size:12px;color:#9090b0;">Turns</span>
-            <span style="font-size:13px;font-weight:600;color:#e2e2f0;" id="statTurns">1</span>
-          </div>
-          <div class="flex justify-between">
-            <span style="font-size:12px;color:#9090b0;">Latency</span>
-            <span style="font-size:13px;font-weight:600;color:#4ade80;">142ms</span>
-          </div>
-          <div class="flex justify-between">
-            <span style="font-size:12px;color:#9090b0;">Emotion Score</span>
-            <span style="font-size:13px;font-weight:600;color:#c084fc;" id="statEmotion">Neutral</span>
-          </div>
-          <div class="flex justify-between">
-            <span style="font-size:12px;color:#9090b0;">Language</span>
-            <span style="font-size:13px;font-weight:600;color:#60a5fa;" id="statLang">ES</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Model info -->
-      <div style="background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(37,99,235,0.05));border:1px solid rgba(168,85,247,0.2);border-radius:16px;padding:14px;">
-        <div class="flex items-center gap-2 mb-1">
-          <div style="width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;"></div>
-          <span style="font-size:11px;color:#7c7c9a;font-weight:600;letter-spacing:0.1em;">MODEL</span>
-        </div>
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;" class="grad-text">DeepVoice Pro v3.2</div>
-        <div style="font-size:11px;color:#7c7c9a;margin-top:2px;">Multilingual · Emotional AI</div>
-      </div>
     </div>
 
   </div>
 </main>
 
-<!-- Footer CTA -->
-<footer style="padding:24px 20px;border-top:1px solid #1e1e2e;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);">
-  <div style="max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
-    <div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#e2e2f0;">Ready to deploy this agent?</div>
-      <div style="font-size:12px;color:#7c7c9a;margin-top:2px;">Take your AI voice agent to production in minutes.</div>
-    </div>
-    <button class="cta-btn" onclick="this.textContent='🗓 Booking...';setTimeout(()=>this.textContent='✅ Request Sent!',1500)">
-      🚀 BOOK DISCOVERY CALL (TAKE THIS AGENT WITH YOU)
-    </button>
-    <div class="flex items-center gap-4">
-      <div style="text-align:center;">
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;" class="grad-text">14ms</div>
-        <div style="font-size:10px;color:#7c7c9a;">Avg Latency</div>
-      </div>
-      <div style="width:1px;height:32px;background:#1e1e2e;"></div>
-      <div style="text-align:center;">
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;" class="grad-text">50+</div>
-        <div style="font-size:10px;color:#7c7c9a;">Languages</div>
-      </div>
-      <div style="width:1px;height:32px;background:#1e1e2e;"></div>
-      <div style="text-align:center;">
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;" class="grad-text">99.9%</div>
-        <div style="font-size:10px;color:#7c7c9a;">Uptime</div>
-      </div>
-    </div>
-  </div>
-</footer>
 
 <script>
-// ===== WAVEFORM =====
-const waveform = document.getElementById('waveform');
-const BAR_COUNT = 48;
-let waveState = 'idle'; // idle | listening | responding
-let toneValue = 50;
+// ===== ICONS =====
+const MIC_ICON  = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>`;
+const STOP_ICON = `<svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`;
 
-function buildWaveform() {
-  waveform.innerHTML = '';
-  for (let i = 0; i < BAR_COUNT; i++) {
-    const bar = document.createElement('div');
-    bar.className = 'wave-bar idle';
-    const maxH = 20 + Math.sin(i * 0.4) * 25 + Math.random() * 20;
-    bar.style.cssText = `height:${60 + maxH}px;--dur:${0.8 + Math.random() * 0.8}s;--max:${0.15 + Math.random() * 0.35};`;
-    waveform.appendChild(bar);
+// ===== ORGANIC CANVAS WAVEFORM =====
+const waveCanvas = document.getElementById('waveCanvas');
+const wCtx = waveCanvas.getContext('2d');
+let waveState = 'idle';
+let toneValue = 50;
+let waveRafId = null;
+let waveTime = 0;
+let waveAmplitude = 0;       // current amplitude (lerps to target)
+let waveAmplitudeTarget = 0; // target based on state
+let waveSpeed = 0.008;
+let waveSpeedTarget = 0.008;
+
+// Resize canvas to match container
+function resizeWaveCanvas() {
+  const wrap = document.getElementById('waveformWrap');
+  const dpr = window.devicePixelRatio || 1;
+  const w = wrap.clientWidth;
+  const h = 200;
+  waveCanvas.width  = w * dpr;
+  waveCanvas.height = h * dpr;
+  waveCanvas.style.height = h + 'px';
+  wCtx.scale(dpr, dpr);
+}
+resizeWaveCanvas();
+window.addEventListener('resize', resizeWaveCanvas);
+
+// Layer config — each layer has its own speed, phase offset, amplitude factor
+const LAYERS = [
+  { freq: 1.6,  phaseOff: 0,    ampFactor: 1.0,  blur: 18, alpha: 0.9  },
+  { freq: 2.3,  phaseOff: 1.1,  ampFactor: 0.7,  blur: 12, alpha: 0.7  },
+  { freq: 3.1,  phaseOff: 2.3,  ampFactor: 0.5,  blur: 8,  alpha: 0.55 },
+  { freq: 0.9,  phaseOff: 3.7,  ampFactor: 0.35, blur: 24, alpha: 0.4  },
+];
+
+function getLayerColors(layerIndex, state) {
+  // Idle: cool purple-blue, Listening: pink-purple, Responding: blue-pink-neon
+  if (state === 'idle') {
+    const cols = [
+      ['#FF007A','#7B2FFF'],
+      ['#7B2FFF','#00C2FF'],
+      ['#FF007A','#FF6AB0'],
+      ['#9B30FF','#FF007A'],
+    ];
+    return cols[layerIndex] || ['#7c3aed','#3b82f6'];
+  } else if (state === 'ambient') {
+    const cols = [
+      ['#FF007A','#7B2FFF'],
+      ['#7B2FFF','#9B30FF'],
+      ['#FF007A','#FF6AB0'],
+      ['#9B30FF','#FF007A'],
+    ];
+    return cols[layerIndex] || ['#7c3aed','#3b82f6'];
+  } else if (state === 'analyzing') {
+    const cols = [
+      ['#a855f7','#7B2FFF'],
+      ['#7B2FFF','#a855f7'],
+      ['#c084fc','#7B2FFF'],
+      ['#a855f7','#c084fc'],
+    ];
+    return cols[layerIndex] || ['#a855f7','#7B2FFF'];
+  } else if (state === 'listening') {
+    const cols = [
+      ['#FF007A','#FF6AB0'],
+      ['#FF6AB0','#7B2FFF'],
+      ['#FF007A','#FF007A'],
+      ['#FF3D9A','#FF007A'],
+    ];
+    return cols[layerIndex] || ['#ec4899','#a855f7'];
+  } else if (state === 'call') {
+    const cols = [
+      ['#4ade80','#059669'],
+      ['#10b981','#0284c7'],
+      ['#34d399','#4ade80'],
+      ['#059669','#10b981'],
+    ];
+    return cols[layerIndex] || ['#4ade80','#059669'];
+  } else {
+    // responding
+    const cols = [
+      ['#7B2FFF','#00C2FF'],
+      ['#FF007A','#7B2FFF'],
+      ['#00C2FF','#FF007A'],
+      ['#FF007A','#FF6AB0'],
+    ];
+    return cols[layerIndex] || ['#a855f7','#3b82f6'];
   }
+}
+
+function drawWave() {
+  const w = waveCanvas.width  / (window.devicePixelRatio || 1);
+  const h = waveCanvas.height / (window.devicePixelRatio || 1);
+  const cy = h / 2;
+
+  wCtx.clearRect(0, 0, w, h);
+
+  // Lerp amplitude and speed toward targets
+  waveAmplitude += (waveAmplitudeTarget - waveAmplitude) * 0.04;
+  waveSpeed     += (waveSpeedTarget     - waveSpeed)     * 0.04;
+  waveTime      += waveSpeed;
+
+  // Draw each layer back to front
+  LAYERS.forEach((layer, li) => {
+    const amp   = waveAmplitude * layer.ampFactor * cy * 0.85;
+    const [c1, c2] = getLayerColors(li, waveState);
+
+    // Glow pass
+    wCtx.save();
+    wCtx.filter = `blur(${layer.blur}px)`;
+    wCtx.globalAlpha = layer.alpha * 0.5;
+    drawSingleWave(w, cy, amp, layer, c1, c2, 4);
+    wCtx.restore();
+
+    // Crisp pass
+    wCtx.save();
+    wCtx.filter = 'none';
+    wCtx.globalAlpha = layer.alpha;
+    drawSingleWave(w, cy, amp, layer, c1, c2, 2);
+    wCtx.restore();
+  });
+
+  // Center flat line when fully idle
+  if (waveAmplitude < 0.01) {
+    const grad = wCtx.createLinearGradient(0, 0, w, 0);
+    grad.addColorStop(0,   'rgba(124,58,237,0.0)');
+    grad.addColorStop(0.3, 'rgba(124,58,237,0.4)');
+    grad.addColorStop(0.7, 'rgba(37,99,235,0.4)');
+    grad.addColorStop(1,   'rgba(37,99,235,0.0)');
+    wCtx.save();
+    wCtx.strokeStyle = grad;
+    wCtx.lineWidth = 1.5;
+    wCtx.globalAlpha = 0.6;
+    wCtx.beginPath();
+    wCtx.moveTo(0, cy);
+    wCtx.lineTo(w, cy);
+    wCtx.stroke();
+    wCtx.restore();
+  }
+
+  waveRafId = requestAnimationFrame(drawWave);
+}
+
+function drawSingleWave(w, cy, amp, layer, c1, c2, lineWidth) {
+  const grad = wCtx.createLinearGradient(0, 0, w, 0);
+  grad.addColorStop(0,    c1 + '00');
+  grad.addColorStop(0.15, c1);
+  grad.addColorStop(0.5,  c2);
+  grad.addColorStop(0.85, c1);
+  grad.addColorStop(1,    c1 + '00');
+
+  wCtx.beginPath();
+  wCtx.strokeStyle = grad;
+  wCtx.lineWidth   = lineWidth;
+  wCtx.lineJoin    = 'round';
+  wCtx.lineCap     = 'round';
+
+  const steps = 200;
+  for (let i = 0; i <= steps; i++) {
+    const x = (i / steps) * w;
+    const t = (i / steps) * Math.PI * 2;
+    // Multi-harmonic organic wave
+    const y = cy
+      + Math.sin(t * layer.freq + waveTime + layer.phaseOff) * amp
+      + Math.sin(t * layer.freq * 2.1 + waveTime * 1.3 + layer.phaseOff) * amp * 0.35
+      + Math.sin(t * layer.freq * 0.5 + waveTime * 0.7 + layer.phaseOff) * amp * 0.2;
+    i === 0 ? wCtx.moveTo(x, y) : wCtx.lineTo(x, y);
+  }
+  wCtx.stroke();
 }
 
 function setWaveState(state) {
   waveState = state;
-  const bars = waveform.querySelectorAll('.wave-bar');
-  bars.forEach(bar => {
-    bar.className = 'wave-bar';
-    if (state === 'idle') {
-      bar.classList.add('idle');
-      bar.style.setProperty('--max', String(0.15 + Math.random() * 0.35));
-    } else if (state === 'listening') {
-      bar.classList.add('active');
-      bar.style.setProperty('--max', String(0.5 + Math.random() * 0.5));
-      bar.style.setProperty('--dur', String(0.2 + Math.random() * 0.3) + 's');
-    } else if (state === 'responding') {
-      bar.classList.add('active');
-      bar.style.setProperty('--max', String(0.7 + Math.random() * 0.3));
-      bar.style.setProperty('--dur', String(0.15 + Math.random() * 0.25) + 's');
-    }
-    applyToneColor(bar);
-  });
+  if (state === 'idle') {
+    waveAmplitudeTarget = 0;
+    waveSpeedTarget = 0.006;
+  } else if (state === 'ambient') {
+    // Session is active but no one speaking — constant gentle ripple
+    waveAmplitudeTarget = 0.12;
+    waveSpeedTarget = 0.012;
+  } else if (state === 'listening') {
+    waveAmplitudeTarget = 0.65;
+    waveSpeedTarget = 0.026;
+  } else if (state === 'analyzing') {
+    waveAmplitudeTarget = 0.22;
+    waveSpeedTarget = 0.014;
+  } else if (state === 'responding') {
+    waveAmplitudeTarget = 0.85;
+    waveSpeedTarget = 0.03;
+  } else if (state === 'call') {
+    waveAmplitudeTarget = 0.6;
+    waveSpeedTarget = 0.025;
+  }
 }
 
-function applyToneColor(bar) {
-  bar.classList.remove('urgent', 'empathetic');
-  if (toneValue < 30) bar.classList.add('empathetic');
-  else if (toneValue > 70) bar.classList.add('urgent');
-}
+function applyToneColor() {} // no-op now, colors driven by waveState
 
-buildWaveform();
+// Idle breathe — subtle pulse only when truly idle (session off)
+setInterval(() => {
+  if (waveState === 'idle') {
+    waveAmplitudeTarget = waveAmplitudeTarget < 0.04 ? 0.07 : 0;
+  }
+}, 2000);
+
+// Start the render loop
+drawWave();
 
 // ===== MIC / RECORDING =====
 let isListening = false;
+let sessionActive = false;
+let conversationLoopTimeout = null;
+let botResponseTimeout = null;
 let turnCount = 1;
-const micBtn = document.getElementById('micBtn');
-const chatLog = document.getElementById('chatLog');
+const chatLog = { appendChild: ()=>{}, scrollTop: 0, scrollHeight: 0 }; // chat removed
 const statusText = document.getElementById('statusText');
+
+const BOT_RESPONSE_SENTENCE = "I understand. I am now adjusting my tone to be more empathetic while I translate your message into Spanish. How does that sound?";
+const BOT_RESPONSE_DURATION_MS = 5000; // exactly 5 seconds
+
+function setToggleIdle() {
+  const btn = document.getElementById('sessionToggleBtn');
+  btn.textContent = 'START CONVERSATION';
+  btn.style.background = 'linear-gradient(135deg, #FF007A, #7B2FFF)';
+  btn.style.animation = 'idlePulse 2.5s ease infinite';
+}
+
+function setToggleLive() {
+  const btn = document.getElementById('sessionToggleBtn');
+  btn.textContent = 'STOP / END SESSION';
+  btn.style.background = 'linear-gradient(135deg, #dc2626, #991b1b)';
+  btn.style.animation = 'livePulse 1.5s ease infinite';
+}
+
+function showAiAnalyzing(show) {
+  const el = document.getElementById('aiAnalyzing');
+  if (el) el.style.display = show ? 'flex' : 'none';
+}
+
+function toggleSession() {
+  if (!sessionActive) {
+    // START SESSION
+    sessionActive = true;
+    setToggleLive();
+    setWaveState('ambient');
+    statusText.textContent = '● SESSION ACTIVE — speak now';
+    statusText.style.color = '#FF007A';
+    startConversationLoop();
+  } else {
+    // STOP SESSION
+    endSession();
+  }
+}
+
+function endSession() {
+  sessionActive = false;
+  isListening = false;
+  clearTimeout(conversationLoopTimeout);
+  clearTimeout(botResponseTimeout);
+  showAiAnalyzing(false);
+  if (recognition) { try { recognition.stop(); } catch(e) {} }
+  window.speechSynthesis.cancel();
+  setToggleIdle();
+  setWaveState('idle');
+  statusText.textContent = '';
+  statusText.style.color = '#7c7c9a';
+  hideSpeakerIcon();
+  // Reset chat display
+  const textEl = document.getElementById('chatSpeakerText');
+  if (textEl) { textEl.textContent = ''; }
+}
+
+// ===== CONVERSATION LOOP =====
+function startConversationLoop() {
+  if (!sessionActive) return;
+  // Simulate user speaking after a short moment
+  conversationLoopTimeout = setTimeout(() => {
+    if (!sessionActive) return;
+    triggerUserInput();
+  }, 1200);
+}
+
+function triggerUserInput() {
+  if (!sessionActive) return;
+
+  // Show user speaking — high intensity waveform
+  setWaveState('listening');
+  statusText.textContent = '● YOU — speaking';
+  statusText.style.color = '#f472b6';
+
+  const avatar = document.getElementById('chatSpeakerAvatar');
+  const nameEl = document.getElementById('chatSpeakerName');
+  const textEl = document.getElementById('chatSpeakerText');
+  if (avatar) { avatar.style.background = '#1e1e2e'; avatar.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'; }
+  if (nameEl) nameEl.textContent = 'YOU · LIVE';
+  if (textEl) { textEl.textContent = '...'; textEl.style.fontStyle = 'italic'; textEl.style.color = '#f472b6'; }
+
+  // Simulate user speaking for 2.5 seconds, then natural pause → AI analyzing
+  conversationLoopTimeout = setTimeout(() => {
+    if (!sessionActive) return;
+    triggerAnalyzing();
+  }, 2500);
+}
+
+function triggerAnalyzing() {
+  if (!sessionActive) return;
+
+  // 2-second AI analyzing state
+  setWaveState('analyzing');
+  showAiAnalyzing(true);
+  statusText.textContent = '';
+
+  const textEl = document.getElementById('chatSpeakerText');
+  if (textEl) { textEl.textContent = ''; textEl.style.fontStyle = 'normal'; }
+
+  conversationLoopTimeout = setTimeout(() => {
+    if (!sessionActive) return;
+    showAiAnalyzing(false);
+    triggerBotResponse();
+  }, 2000);
+}
+
+function triggerBotResponse() {
+  if (!sessionActive) return;
+
+  const lang = getActiveLang();
+  const resp = BOT_RESPONSE_SENTENCE;
+
+  setWaveState('responding');
+  statusText.textContent = `${activeAgent.name.toUpperCase()} IS RESPONDING...`;
+  statusText.style.color = '#a855f7';
+
+  const avatar = document.getElementById('chatSpeakerAvatar');
+  const nameEl = document.getElementById('chatSpeakerName');
+  const textEl = document.getElementById('chatSpeakerText');
+
+  if (avatar) { avatar.style.background = activeAgent.gradient; avatar.textContent = activeAgent.letter; }
+  if (nameEl) nameEl.textContent = activeAgent.name.toUpperCase() + ' · BOT';
+  if (textEl) { textEl.textContent = ''; textEl.style.color = '#e2e2f0'; textEl.style.fontStyle = 'normal'; }
+
+  showSpeakerIcon();
+  speakText(resp, lang);
+
+  // Typewriter effect spread over exactly 5 seconds
+  typewriterOverDuration(textEl, resp, BOT_RESPONSE_DURATION_MS);
+
+  // After 5 seconds, loop back to ambient + user input
+  botResponseTimeout = setTimeout(() => {
+    if (!sessionActive) return;
+    hideSpeakerIcon();
+    window.speechSynthesis.cancel();
+    setWaveState('ambient');
+    statusText.textContent = '● SESSION ACTIVE — speak now';
+    statusText.style.color = '#FF007A';
+    turnCount++;
+    // Start next loop after a brief pause
+    startConversationLoop();
+  }, BOT_RESPONSE_DURATION_MS + 300);
+}
+
+function typewriterOverDuration(el, text, durationMs) {
+  if (!el) return;
+  el.textContent = '';
+  const chars = text.length;
+  const delay = durationMs / chars;
+  let i = 0;
+  function addChar() {
+    if (!sessionActive) { el.textContent = text; return; }
+    if (i < chars) {
+      el.textContent += text[i];
+      i++;
+      setTimeout(addChar, delay);
+    }
+  }
+  addChar();
+}
 
 const userPhrases = [
   "Hello, how are you today?",
@@ -492,107 +828,169 @@ let activeAgent = { name: 'Maya', letter: 'M', gradient: 'linear-gradient(135deg
 
 function getActiveLang() { return selectedLang; }
 
+// ===== SPEAKER ICON =====
+function showSpeakerIcon() {
+  const icon = document.getElementById('speakerIcon');
+  if (icon) icon.style.display = 'inline-flex';
+}
+function hideSpeakerIcon() {
+  const icon = document.getElementById('speakerIcon');
+  if (icon) icon.style.display = 'none';
+}
+
+// ===== SPEECH SYNTHESIS (BOT VOICE) =====
+const langToLocale = { EN:"en-US", ES:"es-ES", FR:"fr-FR", JP:"ja-JP", DE:"de-DE", IT:"it-IT" };
+
+// Force-load voices and keep refreshing until available
+let cachedVoices = [];
+function loadVoices() {
+  const v = window.speechSynthesis.getVoices();
+  if (v.length > 0) cachedVoices = v;
+}
+loadVoices();
+window.speechSynthesis.onvoiceschanged = loadVoices;
+// Aggressive retry for Chrome which loads voices async
+const voiceRetry = setInterval(() => {
+  loadVoices();
+  if (cachedVoices.length > 0) clearInterval(voiceRetry);
+}, 100);
+
+let waveAnimFrame = null; // kept for compat
+function animateWaveWhileSpeaking() {} // canvas loop handles this now
+
+function speakText(text, lang) {
+  if (!window.speechSynthesis) { hideSpeakerIcon(); return; }
+
+  window.speechSynthesis.cancel();
+  cancelAnimationFrame(waveAnimFrame);
+
+  const locale = langToLocale[lang] || 'en-US';
+
+  const trySpeak = () => {
+    const voices = window.speechSynthesis.getVoices();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = locale;
+    utter.rate = 1.0;
+    utter.pitch = 1.1;
+    utter.volume = 1.0;
+
+    if (voices.length > 0) {
+      const langCode = locale.split('-')[0];
+      const femaleKeywords = ['female','woman','girl','samantha','victoria','karen','moira','fiona','veena','tessa','allison','ava','susan','zira','helena','paulina','amelie','alice','sara','anna','laura','lekha','sin-ji','mei-jia','kyoko','o-ren'];
+      const maleKeywords = ['male','man','daniel','thomas','alex','fred','jorge','diego','reed','luca','aaron','oliver','rishi','otoya','hans','stefan','pierre'];
+      const langVoices = voices.filter(v => v.lang === locale || v.lang.startsWith(langCode));
+      const isMaya = activeAgent.name === 'Maya';
+      let match;
+      if (isMaya) {
+        // Female voice for Maya
+        match = langVoices.find(v => femaleKeywords.some(k => v.name.toLowerCase().includes(k)))
+               || langVoices.find(v => !maleKeywords.some(k => v.name.toLowerCase().includes(k)))
+               || langVoices[0];
+      } else {
+        // Male voice for David, Sam, Kai
+        match = langVoices.find(v => maleKeywords.some(k => v.name.toLowerCase().includes(k)))
+               || langVoices.find(v => !femaleKeywords.some(k => v.name.toLowerCase().includes(k)))
+               || langVoices[0];
+      }
+      match = match || voices.find(v => v.lang.includes(langCode));
+      if (match) utter.voice = match;
+      // Adjust pitch: female slightly higher, male lower
+      utter.pitch = isMaya ? 1.2 : 0.85;
+    }
+
+    utter.onstart = () => { setWaveState('responding'); };
+    utter.onend = () => { setWaveState('idle'); hideSpeakerIcon(); };
+    utter.onerror = () => { setWaveState('idle'); hideSpeakerIcon(); };
+    window.speechSynthesis.speak(utter);
+  };
+
+  setTimeout(trySpeak, 300);
+}
+
 // ===== SPEECH RECOGNITION SETUP =====
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let liveTranscriptEl = null;
+let accumulatedText = '';
+let userStoppedManually = false;  // OUTSIDE if block so toggleMic can access it
 
 if (SpeechRecognition) {
   recognition = new SpeechRecognition();
-  recognition.continuous = false;
-  recognition.interimResults = true; // show words as they come in
+  recognition.continuous = true;
+  recognition.interimResults = true;
   recognition.lang = 'en-US';
 
   recognition.onstart = () => {
     isListening = true;
-    micBtn.classList.add('listening');
-    statusText.textContent = '● LISTENING...';
-    statusText.style.color = '#f472b6';
     setWaveState('listening');
-    // Create a live bubble that updates as you speak
-    liveTranscriptEl = addLiveBubble();
+    statusText.textContent = '● YOU — speaking';
+    statusText.style.color = '#f472b6';
+    const _av = document.getElementById('chatSpeakerAvatar');
+    const _nm = document.getElementById('chatSpeakerName');
+    const _tx = document.getElementById('chatSpeakerText');
+    if (_av) { _av.style.background = '#1e1e2e'; _av.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'; }
+    if (_nm) _nm.textContent = 'YOU · LIVE';
+    if (_tx) { _tx.textContent = '...'; _tx.style.fontStyle = 'italic'; _tx.style.color = '#f472b6'; }
+    liveTranscriptEl = true;
   };
 
   recognition.onresult = (event) => {
     let interim = '';
-    let final = '';
     for (let i = event.resultIndex; i < event.results.length; i++) {
       const t = event.results[i][0].transcript;
-      if (event.results[i].isFinal) final += t;
-      else interim += t;
+      if (event.results[i].isFinal) accumulatedText += t + ' ';
+      else interim = t;
     }
-    // Update the live bubble in real time
-    if (liveTranscriptEl) {
-      const bubble = liveTranscriptEl.querySelector('.live-text');
-      bubble.textContent = final || interim;
-      if (final) bubble.style.opacity = '1';
-      else bubble.style.opacity = '0.65';
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
+    const avatar = document.getElementById('chatSpeakerAvatar');
+    const nameEl = document.getElementById('chatSpeakerName');
+    const textEl = document.getElementById('chatSpeakerText');
+    avatar.style.background = '#1e1e2e';
+    avatar.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    nameEl.textContent = 'YOU · LIVE';
+    textEl.textContent = (accumulatedText + interim).trim() || '...';
+    textEl.style.fontStyle = 'italic';
+    textEl.style.color = '#c084fc';
   };
 
   recognition.onend = () => {
-    isListening = false;
-    micBtn.classList.remove('listening');
-    const spokenText = liveTranscriptEl ? liveTranscriptEl.querySelector('.live-text').textContent.trim() : '';
-
-    if (!spokenText) {
-      // Nothing was heard — remove live bubble and reset
-      if (liveTranscriptEl) liveTranscriptEl.remove();
-      liveTranscriptEl = null;
-      statusText.textContent = 'CLICK MIC TO SPEAK';
-      statusText.style.color = '#7c7c9a';
-      setWaveState('idle');
+    if (!userStoppedManually) {
+      if (isListening) { try { recognition.start(); } catch(e) {} }
       return;
     }
 
-    // Finalize the user bubble
-    liveTranscriptEl = null;
-    statusText.textContent = `${activeAgent.name} IS RESPONDING...`;
-    statusText.style.color = '#a855f7';
-    setWaveState('responding');
+    isListening = false;
+    const textEl = document.getElementById('chatSpeakerText');
+    const spokenText = accumulatedText.trim() || ((textEl && textEl.textContent.trim() !== '...') ? textEl.textContent.trim() : '');
+    accumulatedText = '';
+    userStoppedManually = false;
 
-    const typingEl = addTyping();
-    setTimeout(() => {
-      typingEl.remove();
-      const lang = getActiveLang();
-      const responses = botResponses[lang] || botResponses['EN'];
-      const resp = responses[responseIndex % responses.length];
-      responseIndex++;
-      addChat('bot', resp, lang);
-      turnCount++;
-      document.getElementById('statTurns').textContent = String(turnCount);
-      setWaveState('idle');
-      statusText.textContent = 'CLICK MIC TO SPEAK';
-      statusText.style.color = '#7c7c9a';
-    }, 1800);
+    if (!spokenText) {
+      if (sessionActive) { setWaveState('ambient'); statusText.textContent = '● SESSION ACTIVE — speak now'; statusText.style.color = '#FF007A'; }
+      else { setWaveState('idle'); }
+      return;
+    }
+
+    liveTranscriptEl = null;
+
+    // Trigger the analyzing → bot response flow
+    triggerAnalyzing();
   };
 
   recognition.onerror = (e) => {
     isListening = false;
-    micBtn.classList.remove('listening');
-    if (liveTranscriptEl) liveTranscriptEl.remove();
-    liveTranscriptEl = null;
-    setWaveState('idle');
+    if (liveTranscriptEl) liveTranscriptEl = null;
+    if (sessionActive) { setWaveState('ambient'); statusText.textContent = '● SESSION ACTIVE — speak now'; statusText.style.color = '#FF007A'; }
+    else { setWaveState('idle'); statusText.textContent = ''; }
     if (e.error === 'not-allowed') {
       statusText.textContent = '⚠ Mic permission denied';
-    } else {
-      statusText.textContent = 'CLICK MIC TO SPEAK';
+      statusText.style.color = '#f87171';
     }
-    statusText.style.color = '#7c7c9a';
   };
 }
 
 function toggleMic() {
-  if (!SpeechRecognition) {
-    alert('Sorry, your browser does not support Speech Recognition.\nPlease use Chrome or Edge.');
-    return;
-  }
-  if (isListening) {
-    recognition.stop();
-    return;
-  }
-  recognition.start();
+  // Legacy — session toggle now handles interaction
+  toggleSession();
 }
 
 // Creates a live-updating user bubble
@@ -614,42 +1012,36 @@ function addLiveBubble() {
 }
 
 function addChat(role, text, lang) {
-  const wrap = document.createElement('div');
-  wrap.className = 'fade-in flex items-start gap-2';
+  const avatar = document.getElementById('chatSpeakerAvatar');
+  const nameEl = document.getElementById('chatSpeakerName');
+  const textEl = document.getElementById('chatSpeakerText');
   if (role === 'user') {
-    wrap.style.flexDirection = 'row-reverse';
-    wrap.innerHTML = `
-      <div style="width:28px;height:28px;border-radius:50%;background:#1e1e2e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9090b0" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:11px;color:#7c7c9a;margin-bottom:4px;">You</div>
-        <div class="bubble-user" style="padding:10px 14px;font-size:13px;line-height:1.5;">${text}</div>
-      </div>`;
+    avatar.style.background = '#1e1e2e';
+    avatar.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9090b0" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    nameEl.textContent = 'YOU';
+    textEl.textContent = text;
+    textEl.style.fontStyle = 'normal';
+    textEl.style.color = '#e2e2f0';
   } else {
-    wrap.innerHTML = `
-      <div style="width:28px;height:28px;border-radius:50%;background:${activeAgent.gradient};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">${activeAgent.letter}</div>
-      <div>
-        <div style="font-size:11px;color:#7c7c9a;margin-bottom:4px;">${activeAgent.name} · Bot</div>
-        <div class="bubble-bot" style="padding:10px 14px;font-size:13px;line-height:1.5;">${text} <span style="opacity:0.5;font-size:11px;">• ${lang}</span></div>
-      </div>`;
+    avatar.style.background = activeAgent.gradient;
+    avatar.textContent = activeAgent.letter;
+    nameEl.textContent = activeAgent.name.toUpperCase() + ' · BOT';
+    textEl.textContent = text;
+    textEl.style.fontStyle = 'normal';
+    textEl.style.color = '#e2e2f0';
   }
-  chatLog.appendChild(wrap);
-  chatLog.scrollTop = chatLog.scrollHeight;
 }
 
 function addTyping() {
-  const wrap = document.createElement('div');
-  wrap.className = 'fade-in flex items-start gap-2';
-  wrap.innerHTML = `
-    <div style="width:28px;height:28px;border-radius:50%;background:${activeAgent.gradient};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">${activeAgent.letter}</div>
-    <div>
-      <div style="font-size:11px;color:#7c7c9a;margin-bottom:4px;">${activeAgent.name} · Bot</div>
-      <div class="bubble-bot" style="padding:12px 16px;"><div class="typing"><span></span><span></span><span></span></div></div>
-    </div>`;
-  chatLog.appendChild(wrap);
-  chatLog.scrollTop = chatLog.scrollHeight;
-  return wrap;
+  const avatar = document.getElementById('chatSpeakerAvatar');
+  const nameEl = document.getElementById('chatSpeakerName');
+  const textEl = document.getElementById('chatSpeakerText');
+  avatar.style.background = activeAgent.gradient;
+  avatar.textContent = activeAgent.letter;
+  nameEl.textContent = activeAgent.name.toUpperCase() + ' · BOT';
+  textEl.innerHTML = '<span style="opacity:0.6;font-style:italic;">typing...</span>';
+  // Return dummy object with remove() that does nothing (compat)
+  return { remove: () => {} };
 }
 
 // ===== AGENT CARDS =====
@@ -687,9 +1079,25 @@ function updateTone(val) {
   bars.forEach(bar => applyToneColor(bar));
 }
 
-// ===== VIBE CHIPS =====
-function toggleVibe(el) {
-  el.classList.toggle('active');
+// ===== EMOTION CHIPS =====
+function selectEmotion(el) {
+  document.querySelectorAll('#emotionGrid .vibe-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  // Reset slider to medium on each new selection
+  const slider = document.getElementById('emotionIntensity');
+  if (slider) { slider.value = 50; updateEmotionIntensity(50); }
+}
+
+function updateEmotionIntensity(val) {
+  val = parseInt(val);
+  let label = 'Medium';
+  if (val < 25) label = 'Subtle';
+  else if (val < 50) label = 'Mild';
+  else if (val < 75) label = 'Medium';
+  else if (val < 90) label = 'Strong';
+  else label = 'Intense';
+  const lbl = document.getElementById('emotionIntensityLabel');
+  if (lbl) lbl.textContent = label;
 }
 
 // ===== LANGUAGE =====
@@ -702,13 +1110,331 @@ function selectLang(el, lang) {
 }
 
 // ===== CLONE BUTTON =====
-function triggerClone(btn) {
-  btn.textContent = '⏳ Analyzing voice...';
-  btn.disabled = true;
-  setTimeout(() => { btn.textContent = '🔊 Training model...'; }, 1200);
-  setTimeout(() => { btn.textContent = '✅ CLONE READY!'; btn.style.background = 'linear-gradient(135deg,#059669,#0284c7)'; }, 2800);
-  setTimeout(() => { btn.textContent = '⚡ CLONE MY VOICE'; btn.style.background = ''; btn.disabled = false; }, 5000);
+// ===== MASTER CLONE =====
+let cloneMediaRecorder = null;
+let cloneVoicePitch = 1.05;
+let cloneVoiceRate = 1.0;
+let cloneAnalyser = null;
+let cloneAnimFrame = null;
+
+// Demo sentence in each language
+const cloneSentences = {
+  EN: "Hello! I am your brand voice, speaking in English with your unique identity.",
+  ES: "¡Hola! Soy la voz de tu marca, hablando en español con tu identidad única.",
+  FR: "Bonjour! Je suis la voix de votre marque, parlant en français avec votre identité unique.",
+  JP: "こんにちは！私はあなたのブランドの声です。日本語であなたのユニークなアイデンティティでお話しします。",
+  DE: "Hallo! Ich bin Ihre Markenstimme und spreche auf Deutsch mit Ihrer einzigartigen Identität.",
+  IT: "Ciao! Sono la voce del tuo brand, parlo in italiano con la tua identità unica.",
+};
+
+function buildCloneWave() {
+  const wave = document.getElementById('cloneWave');
+  if (!wave) return;
+  wave.innerHTML = '';
+  for (let i = 0; i < 24; i++) {
+    const b = document.createElement('div');
+    b.style.cssText = 'width:3px;border-radius:999px;background:linear-gradient(180deg,#a855f7,#3b82f6);transition:height 0.05s;height:3px;';
+    wave.appendChild(b);
+  }
 }
+
+function animateCloneWave() {
+  const wave = document.getElementById('cloneWave');
+  if (!wave) return;
+  const bars = wave.querySelectorAll('div');
+  if (cloneAnalyser) {
+    const data = new Uint8Array(cloneAnalyser.frequencyBinCount);
+    cloneAnalyser.getByteFrequencyData(data);
+    bars.forEach((b, i) => {
+      const val = data[Math.floor(i * data.length / bars.length)] / 255;
+      b.style.height = Math.max(3, val * 30) + 'px';
+    });
+  } else {
+    bars.forEach(b => { b.style.height = (3 + Math.random() * 20) + 'px'; });
+  }
+  cloneAnimFrame = requestAnimationFrame(animateCloneWave);
+}
+
+function triggerClone(btn) {
+  // If already cloned, just reset
+  if (btn.dataset.cloned === 'true') {
+    btn.dataset.cloned = '';
+    btn.textContent = '⚡ CLONE MY VOICE';
+    btn.style.background = '';
+    document.getElementById('cloneLangPlayback').style.display = 'none';
+    document.getElementById('cloneStatus').style.display = 'none';
+    return;
+  }
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert('Microphone not supported in this browser.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '🎙 Recording...';
+  const statusDiv = document.getElementById('cloneStatus');
+  const statusText = document.getElementById('cloneStatusText');
+  statusDiv.style.display = 'block';
+  statusText.textContent = '● RECORDING — say anything for 4 seconds...';
+  buildCloneWave();
+
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    // Set up analyser for live waveform
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioCtx.createMediaStreamSource(stream);
+    cloneAnalyser = audioCtx.createAnalyser();
+    cloneAnalyser.fftSize = 64;
+    source.connect(cloneAnalyser);
+    animateCloneWave();
+
+    const chunks = [];
+    cloneMediaRecorder = new MediaRecorder(stream);
+    cloneMediaRecorder.ondataavailable = e => chunks.push(e.data);
+
+    cloneMediaRecorder.onstop = () => {
+      cancelAnimationFrame(cloneAnimFrame);
+      stream.getTracks().forEach(t => t.stop());
+
+      // Analyze pitch from recording duration to simulate voice matching
+      // We use a simple heuristic: vary pitch/rate slightly per user
+      cloneVoicePitch = 0.95 + Math.random() * 0.2;
+      cloneVoiceRate  = 0.92 + Math.random() * 0.16;
+
+      statusText.textContent = '⚙ Analyzing voice signature...';
+      setTimeout(() => {
+        statusText.textContent = '✅ Voice cloned successfully!';
+        statusText.style.color = '#4ade80';
+        // Stop wave animation, show flat
+        const wave = document.getElementById('cloneWave');
+        if (wave) wave.querySelectorAll('div').forEach(b => b.style.height = '3px');
+
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+          document.getElementById('cloneLangPlayback').style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = '🔄 RE-CLONE';
+          btn.style.background = 'linear-gradient(135deg,#059669,#0284c7)';
+          btn.dataset.cloned = 'true';
+          statusText.style.color = '#c084fc';
+
+          // User clicks language buttons manually — no auto-play
+        }, 1000);
+      }, 1500);
+    };
+
+    cloneMediaRecorder.start();
+    // Stop after 4 seconds
+    setTimeout(() => { if (cloneMediaRecorder.state === 'recording') cloneMediaRecorder.stop(); }, 4000);
+
+  }).catch(() => {
+    btn.disabled = false;
+    btn.textContent = '⚡ CLONE MY VOICE';
+    statusDiv.style.display = 'none';
+    alert('Microphone permission denied. Please allow mic access and try again.');
+  });
+}
+
+function playCloneLang(langCode, langName) {
+  // Highlight active button
+  document.querySelectorAll('.clone-lang-btn').forEach(b => {
+    b.style.borderColor = '#2e2e44';
+    b.style.color = '#e2e2f0';
+    b.style.background = '#1e1e2e';
+  });
+  event.target.style.borderColor = '#a855f7';
+  event.target.style.color = '#c084fc';
+  event.target.style.background = 'rgba(168,85,247,0.15)';
+
+  const text = cloneSentences[langCode] || cloneSentences['EN'];
+  const locale = langToLocale[langCode] || 'en-US';
+
+  // Update chat display
+  const avatar = document.getElementById('chatSpeakerAvatar');
+  const nameEl = document.getElementById('chatSpeakerName');
+  const textEl = document.getElementById('chatSpeakerText');
+  if (avatar) { avatar.style.background = activeAgent.gradient; avatar.textContent = activeAgent.letter; }
+  if (nameEl) nameEl.textContent = 'YOUR CLONED VOICE · ' + langCode;
+  if (textEl) { textEl.textContent = text; textEl.style.color = '#c084fc'; textEl.style.fontStyle = 'normal'; }
+
+  // Speak with cloned pitch/rate
+  window.speechSynthesis.cancel();
+  setTimeout(() => {
+    const voices = window.speechSynthesis.getVoices();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = locale;
+    utter.pitch = cloneVoicePitch;
+    utter.rate  = cloneVoiceRate;
+    utter.volume = 1.0;
+
+    const langC = locale.split('-')[0];
+    const maleKeywords = ['male','man','daniel','thomas','alex','fred','jorge','diego','reed','luca','aaron','oliver','rishi','otoya','hans','stefan','pierre','bruce','ralph'];
+    const femaleKeywords = ['female','woman','samantha','victoria','karen','moira','fiona','veena','tessa','allison','ava','susan','zira','helena','paulina','amelie','alice','sara','anna','laura','kyoko'];
+    const langVoices = voices.filter(v => v.lang === locale || v.lang.startsWith(langC));
+    const maleVoice = langVoices.find(v => maleKeywords.some(k => v.name.toLowerCase().includes(k)))
+                   || langVoices.find(v => !femaleKeywords.some(k => v.name.toLowerCase().includes(k)))
+                   || langVoices[0];
+    if (maleVoice) utter.voice = maleVoice;
+    utter.pitch = cloneVoicePitch * 0.85; // keep it male-range
+
+    showSpeakerIcon();
+    utter.onstart = () => { setWaveState('responding'); animateWaveWhileSpeaking(); };
+    utter.onend = () => { cancelAnimationFrame(waveAnimFrame); setWaveState('idle'); hideSpeakerIcon(); };
+    utter.onerror = () => { cancelAnimationFrame(waveAnimFrame); setWaveState('idle'); hideSpeakerIcon(); };
+    window.speechSynthesis.speak(utter);
+  }, 250);
+}
+
+// ===== AUTO INTRO — plays 2 seconds after page load =====
+const introText = "Hello! I'm Maya. I'm not just a bot I'm your brand's global voice. Switch my language or emotion to see the magic.";
+
+function playIntro() {
+  const avatar = document.getElementById('chatSpeakerAvatar');
+  const nameEl = document.getElementById('chatSpeakerName');
+  const textEl = document.getElementById('chatSpeakerText');
+  if (avatar) { avatar.style.background = 'linear-gradient(135deg,#f472b6,#c084fc)'; avatar.textContent = 'M'; }
+  if (nameEl) nameEl.textContent = 'MAYA · BOT';
+  if (textEl) { textEl.textContent = introText; textEl.style.fontStyle = 'normal'; textEl.style.color = '#e2e2f0'; }
+  showSpeakerIcon();
+  speakText(introText, 'EN');
+}
+
+// Browsers require a user gesture for audio — we use a one-time click anywhere
+// but EXCLUDE the mic button so clicking mic doesn't trigger the intro
+let introPlayed = false;
+function handleFirstInteraction(e) {
+  // Ignore clicks on mic button
+  if (e.target && (e.target.closest('#micBtn'))) return;
+  if (introPlayed) return;
+  introPlayed = true;
+  document.removeEventListener('click', handleFirstInteraction);
+  playIntro();
+}
+document.addEventListener('click', handleFirstInteraction);
+
+// ===== VIRTUAL SALES CALL =====
+let callWaveInterval = null;
+
+function buildCallWave() {
+  const w = document.getElementById('callWave');
+  if (!w) return;
+  w.innerHTML = '';
+  for (let i = 0; i < 20; i++) {
+    const b = document.createElement('div');
+    b.style.cssText = 'width:4px;border-radius:999px;background:linear-gradient(180deg,#4ade80,#0284c7);transition:height 0.1s;';
+    b.style.height = '4px';
+    w.appendChild(b);
+  }
+}
+
+function animateCallWave() {
+  const w = document.getElementById('callWave');
+  if (!w) return;
+  w.querySelectorAll('div').forEach(b => {
+    b.style.height = (4 + Math.random() * 32) + 'px';
+  });
+}
+
+function openSalesModal() {
+  const modal = document.getElementById('salesModal');
+  modal.style.display = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
+
+  // Show dialing state
+  document.getElementById('callStateDial').style.display = 'flex';
+  document.getElementById('callStateConnected').style.display = 'none';
+
+  // Animate ring text
+  const ringEl = document.getElementById('ringText');
+  let ringCount = 0;
+  const ringInterval = setInterval(() => {
+    ringCount++;
+    ringEl.textContent = ringCount % 2 === 0 ? 'Ring...' : 'Ring... Ring...';
+  }, 800);
+
+  // After 3 seconds → switch to connected
+  setTimeout(() => {
+    clearInterval(ringInterval);
+    document.getElementById('callStateDial').style.display = 'none';
+    const connectedEl = document.getElementById('callStateConnected');
+    connectedEl.style.display = 'flex';
+
+    // Update center avatar to Sales Exec
+    const centerAvatar = document.getElementById('centerAvatar');
+    const centerName   = document.getElementById('centerName');
+    const centerRole   = document.getElementById('centerRole');
+    if (centerAvatar) { centerAvatar.textContent = 'SE'; centerAvatar.style.background = 'linear-gradient(135deg,#059669,#0284c7)'; }
+    if (centerName)   centerName.textContent = 'Sales Executive';
+    if (centerRole)   centerRole.textContent  = 'Deepdub · Virtual Partner · Live';
+
+    // Override wave colors to emerald during call
+    waveState = 'call';
+
+    // Build call waveform and animate it
+    buildCallWave();
+    callWaveInterval = setInterval(animateCallWave, 120);
+
+    // Type out the sales message
+    const salesMsg = "Hi there! I'm Deepdub's Virtual Sales Partner. I see you've been exploring Maya's empathetic voice for your integration. I can help you deploy this exact configuration to your Genesys or Five9 sandbox in minutes. Should we start with the API documentation?";
+    const msgEl = document.getElementById('salesExecMsg');
+    msgEl.textContent = '';
+    let i = 0;
+    const typeInterval = setInterval(() => {
+      msgEl.textContent += salesMsg[i];
+      i++;
+      if (i >= salesMsg.length) clearInterval(typeInterval);
+    }, 25);
+
+    // Also update chat box
+    const chatAvatar = document.getElementById('chatSpeakerAvatar');
+    const chatName   = document.getElementById('chatSpeakerName');
+    const chatText   = document.getElementById('chatSpeakerText');
+    if (chatAvatar) { chatAvatar.style.background = 'linear-gradient(135deg,#059669,#0284c7)'; chatAvatar.textContent = 'SE'; }
+    if (chatName)   chatName.textContent = 'SALES EXEC · VIRTUAL';
+    if (chatText)   { chatText.textContent = salesMsg; chatText.style.color = '#4ade80'; chatText.style.fontStyle = 'normal'; }
+
+    // Speak the sales message
+    speakText(salesMsg, 'EN');
+    showSpeakerIcon();
+
+  }, 3000);
+}
+
+function closeSalesModal() {
+  document.getElementById('salesModal').style.display = 'none';
+}
+
+function hangUpCall() {
+  clearInterval(callWaveInterval);
+  window.speechSynthesis.cancel();
+  closeSalesModal();
+
+  // Restore original agent
+  const centerAvatar = document.getElementById('centerAvatar');
+  const centerName   = document.getElementById('centerName');
+  const centerRole   = document.getElementById('centerRole');
+  if (centerAvatar) { centerAvatar.textContent = activeAgent.letter; centerAvatar.style.background = activeAgent.gradient; }
+  if (centerName)   centerName.textContent = activeAgent.name;
+  if (centerRole)   centerRole.textContent  = 'Support · Warm · Active';
+
+  setWaveState('idle');
+  hideSpeakerIcon();
+
+  // Restore chat box
+  const chatAvatar = document.getElementById('chatSpeakerAvatar');
+  const chatName   = document.getElementById('chatSpeakerName');
+  const chatText   = document.getElementById('chatSpeakerText');
+  if (chatAvatar) { chatAvatar.style.background = activeAgent.gradient; chatAvatar.textContent = activeAgent.letter; }
+  if (chatName)   chatName.textContent = activeAgent.name.toUpperCase() + ' · BOT';
+  if (chatText)   { chatText.textContent = 'Call ended. Click mic to continue.'; chatText.style.color = '#9090b0'; }
+}
+
+// Close on backdrop click
+document.getElementById('salesModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSalesModal();
+});
+
 </script>
 </body>
 </html>
