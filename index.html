@@ -113,16 +113,6 @@ tailwind.config = {
   /* Fade in */
   .fade-in { animation: fadeIn 0.4s ease forwards; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* Toggle button pulse states */
-  @keyframes idlePulse {
-    0%, 100% { box-shadow: 0 0 28px rgba(255,0,122,0.45), 0 0 60px rgba(255,0,122,0.15); }
-    50% { box-shadow: 0 0 42px rgba(255,0,122,0.75), 0 0 80px rgba(255,0,122,0.3); }
-  }
-  @keyframes livePulse {
-    0%, 100% { box-shadow: 0 0 24px rgba(220,38,38,0.5), 0 0 60px rgba(220,38,38,0.2); }
-    50% { box-shadow: 0 0 40px rgba(220,38,38,0.85), 0 0 90px rgba(220,38,38,0.35); }
-  }
 </style>
 </head>
 <body>
@@ -251,30 +241,12 @@ tailwind.config = {
         <div style="position:absolute;inset:0;pointer-events:none;border-radius:20px;box-shadow:inset 0 0 60px rgba(168,85,247,0.08);"></div>
       </div>
 
-      <!-- Status + Toggle Button -->
+      <!-- Status + Mic -->
       <div class="flex flex-col items-center gap-3" style="margin-top:16px;">
-        <div id="statusText" style="font-size:12px;color:#7c7c9a;letter-spacing:0.08em;min-height:18px;transition:all 0.3s;"></div>
-        <!-- AI Analyzing indicator -->
-        <div id="aiAnalyzing" style="display:none;align-items:center;gap:8px;background:rgba(123,47,255,0.12);border:1px solid rgba(123,47,255,0.35);border-radius:999px;padding:6px 16px;">
-          <div style="display:flex;gap:3px;align-items:center;">
-            <div style="width:5px;height:5px;border-radius:50%;background:#a855f7;animation:bounce 1.2s ease infinite;"></div>
-            <div style="width:5px;height:5px;border-radius:50%;background:#a855f7;animation:bounce 1.2s ease infinite 0.2s;"></div>
-            <div style="width:5px;height:5px;border-radius:50%;background:#a855f7;animation:bounce 1.2s ease infinite 0.4s;"></div>
-          </div>
-          <span style="font-size:11px;color:#a855f7;font-weight:700;letter-spacing:0.1em;">AI ANALYZING...</span>
-        </div>
-        <button id="sessionToggleBtn" onclick="toggleSession()" style="
-          border: none; border-radius: 999px;
-          padding: 16px 40px;
-          font-family: 'Inter', sans-serif;
-          font-weight: 800; font-size: 13px;
-          letter-spacing: 0.1em; cursor: pointer;
-          transition: all 0.3s ease;
-          background: linear-gradient(135deg, #FF007A, #7B2FFF);
-          color: white;
-          box-shadow: 0 0 28px rgba(255,0,122,0.45), 0 0 60px rgba(255,0,122,0.15);
-          animation: idlePulse 2.5s ease infinite;
-        ">START CONVERSATION</button>
+        <div id="statusText" style="font-size:12px;color:#7c7c9a;letter-spacing:0.08em;">CLICK MIC TO SPEAK</div>
+        <button class="mic-btn" id="micBtn" onclick="toggleMic()">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        </button>
       </div>
 
       <!-- Single Speaker Display -->
@@ -439,22 +411,6 @@ function getLayerColors(layerIndex, state) {
       ['#9B30FF','#FF007A'],
     ];
     return cols[layerIndex] || ['#7c3aed','#3b82f6'];
-  } else if (state === 'ambient') {
-    const cols = [
-      ['#FF007A','#7B2FFF'],
-      ['#7B2FFF','#9B30FF'],
-      ['#FF007A','#FF6AB0'],
-      ['#9B30FF','#FF007A'],
-    ];
-    return cols[layerIndex] || ['#7c3aed','#3b82f6'];
-  } else if (state === 'analyzing') {
-    const cols = [
-      ['#a855f7','#7B2FFF'],
-      ['#7B2FFF','#a855f7'],
-      ['#c084fc','#7B2FFF'],
-      ['#a855f7','#c084fc'],
-    ];
-    return cols[layerIndex] || ['#a855f7','#7B2FFF'];
   } else if (state === 'listening') {
     const cols = [
       ['#FF007A','#FF6AB0'],
@@ -569,28 +525,18 @@ function setWaveState(state) {
   if (state === 'idle') {
     waveAmplitudeTarget = 0;
     waveSpeedTarget = 0.006;
-  } else if (state === 'ambient') {
-    // Session is active but no one speaking — constant gentle ripple
-    waveAmplitudeTarget = 0.12;
-    waveSpeedTarget = 0.012;
   } else if (state === 'listening') {
-    waveAmplitudeTarget = 0.65;
-    waveSpeedTarget = 0.026;
-  } else if (state === 'analyzing') {
-    waveAmplitudeTarget = 0.22;
-    waveSpeedTarget = 0.014;
+    waveAmplitudeTarget = 0.55;
+    waveSpeedTarget = 0.022;
   } else if (state === 'responding') {
     waveAmplitudeTarget = 0.85;
     waveSpeedTarget = 0.03;
-  } else if (state === 'call') {
-    waveAmplitudeTarget = 0.6;
-    waveSpeedTarget = 0.025;
   }
 }
 
 function applyToneColor() {} // no-op now, colors driven by waveState
 
-// Idle breathe — subtle pulse only when truly idle (session off)
+// Idle breathe — subtle pulse
 setInterval(() => {
   if (waveState === 'idle') {
     waveAmplitudeTarget = waveAmplitudeTarget < 0.04 ? 0.07 : 0;
@@ -602,172 +548,10 @@ drawWave();
 
 // ===== MIC / RECORDING =====
 let isListening = false;
-let sessionActive = false;
-let conversationLoopTimeout = null;
-let botResponseTimeout = null;
 let turnCount = 1;
+const micBtn = document.getElementById('micBtn');
 const chatLog = { appendChild: ()=>{}, scrollTop: 0, scrollHeight: 0 }; // chat removed
 const statusText = document.getElementById('statusText');
-
-const BOT_RESPONSE_SENTENCE = "I understand. I am now adjusting my tone to be more empathetic while I translate your message into Spanish. How does that sound?";
-const BOT_RESPONSE_DURATION_MS = 5000; // exactly 5 seconds
-
-function setToggleIdle() {
-  const btn = document.getElementById('sessionToggleBtn');
-  btn.textContent = 'START CONVERSATION';
-  btn.style.background = 'linear-gradient(135deg, #FF007A, #7B2FFF)';
-  btn.style.animation = 'idlePulse 2.5s ease infinite';
-}
-
-function setToggleLive() {
-  const btn = document.getElementById('sessionToggleBtn');
-  btn.textContent = 'STOP / END SESSION';
-  btn.style.background = 'linear-gradient(135deg, #dc2626, #991b1b)';
-  btn.style.animation = 'livePulse 1.5s ease infinite';
-}
-
-function showAiAnalyzing(show) {
-  const el = document.getElementById('aiAnalyzing');
-  if (el) el.style.display = show ? 'flex' : 'none';
-}
-
-function toggleSession() {
-  if (!sessionActive) {
-    // START SESSION
-    sessionActive = true;
-    setToggleLive();
-    setWaveState('ambient');
-    statusText.textContent = '● SESSION ACTIVE — speak now';
-    statusText.style.color = '#FF007A';
-    startConversationLoop();
-  } else {
-    // STOP SESSION
-    endSession();
-  }
-}
-
-function endSession() {
-  sessionActive = false;
-  isListening = false;
-  clearTimeout(conversationLoopTimeout);
-  clearTimeout(botResponseTimeout);
-  showAiAnalyzing(false);
-  if (recognition) { try { recognition.stop(); } catch(e) {} }
-  window.speechSynthesis.cancel();
-  setToggleIdle();
-  setWaveState('idle');
-  statusText.textContent = '';
-  statusText.style.color = '#7c7c9a';
-  hideSpeakerIcon();
-  // Reset chat display
-  const textEl = document.getElementById('chatSpeakerText');
-  if (textEl) { textEl.textContent = ''; }
-}
-
-// ===== CONVERSATION LOOP =====
-function startConversationLoop() {
-  if (!sessionActive) return;
-  // Simulate user speaking after a short moment
-  conversationLoopTimeout = setTimeout(() => {
-    if (!sessionActive) return;
-    triggerUserInput();
-  }, 1200);
-}
-
-function triggerUserInput() {
-  if (!sessionActive) return;
-
-  // Show user speaking — high intensity waveform
-  setWaveState('listening');
-  statusText.textContent = '● YOU — speaking';
-  statusText.style.color = '#f472b6';
-
-  const avatar = document.getElementById('chatSpeakerAvatar');
-  const nameEl = document.getElementById('chatSpeakerName');
-  const textEl = document.getElementById('chatSpeakerText');
-  if (avatar) { avatar.style.background = '#1e1e2e'; avatar.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'; }
-  if (nameEl) nameEl.textContent = 'YOU · LIVE';
-  if (textEl) { textEl.textContent = '...'; textEl.style.fontStyle = 'italic'; textEl.style.color = '#f472b6'; }
-
-  // Simulate user speaking for 2.5 seconds, then natural pause → AI analyzing
-  conversationLoopTimeout = setTimeout(() => {
-    if (!sessionActive) return;
-    triggerAnalyzing();
-  }, 2500);
-}
-
-function triggerAnalyzing() {
-  if (!sessionActive) return;
-
-  // 2-second AI analyzing state
-  setWaveState('analyzing');
-  showAiAnalyzing(true);
-  statusText.textContent = '';
-
-  const textEl = document.getElementById('chatSpeakerText');
-  if (textEl) { textEl.textContent = ''; textEl.style.fontStyle = 'normal'; }
-
-  conversationLoopTimeout = setTimeout(() => {
-    if (!sessionActive) return;
-    showAiAnalyzing(false);
-    triggerBotResponse();
-  }, 2000);
-}
-
-function triggerBotResponse() {
-  if (!sessionActive) return;
-
-  const lang = getActiveLang();
-  const resp = BOT_RESPONSE_SENTENCE;
-
-  setWaveState('responding');
-  statusText.textContent = `${activeAgent.name.toUpperCase()} IS RESPONDING...`;
-  statusText.style.color = '#a855f7';
-
-  const avatar = document.getElementById('chatSpeakerAvatar');
-  const nameEl = document.getElementById('chatSpeakerName');
-  const textEl = document.getElementById('chatSpeakerText');
-
-  if (avatar) { avatar.style.background = activeAgent.gradient; avatar.textContent = activeAgent.letter; }
-  if (nameEl) nameEl.textContent = activeAgent.name.toUpperCase() + ' · BOT';
-  if (textEl) { textEl.textContent = ''; textEl.style.color = '#e2e2f0'; textEl.style.fontStyle = 'normal'; }
-
-  showSpeakerIcon();
-  speakText(resp, lang);
-
-  // Typewriter effect spread over exactly 5 seconds
-  typewriterOverDuration(textEl, resp, BOT_RESPONSE_DURATION_MS);
-
-  // After 5 seconds, loop back to ambient + user input
-  botResponseTimeout = setTimeout(() => {
-    if (!sessionActive) return;
-    hideSpeakerIcon();
-    window.speechSynthesis.cancel();
-    setWaveState('ambient');
-    statusText.textContent = '● SESSION ACTIVE — speak now';
-    statusText.style.color = '#FF007A';
-    turnCount++;
-    // Start next loop after a brief pause
-    startConversationLoop();
-  }, BOT_RESPONSE_DURATION_MS + 300);
-}
-
-function typewriterOverDuration(el, text, durationMs) {
-  if (!el) return;
-  el.textContent = '';
-  const chars = text.length;
-  const delay = durationMs / chars;
-  let i = 0;
-  function addChar() {
-    if (!sessionActive) { el.textContent = text; return; }
-    if (i < chars) {
-      el.textContent += text[i];
-      i++;
-      setTimeout(addChar, delay);
-    }
-  }
-  addChar();
-}
 
 const userPhrases = [
   "Hello, how are you today?",
@@ -922,9 +706,11 @@ if (SpeechRecognition) {
 
   recognition.onstart = () => {
     isListening = true;
-    setWaveState('listening');
-    statusText.textContent = '● YOU — speaking';
+    micBtn.classList.add('listening');
+    micBtn.innerHTML = STOP_ICON;
+    statusText.textContent = '● SPEAK NOW — click stop when done';
     statusText.style.color = '#f472b6';
+    setWaveState('listening');
     const _av = document.getElementById('chatSpeakerAvatar');
     const _nm = document.getElementById('chatSpeakerName');
     const _tx = document.getElementById('chatSpeakerText');
@@ -953,44 +739,152 @@ if (SpeechRecognition) {
   };
 
   recognition.onend = () => {
+    // Chrome auto-stopped but user hasn't clicked stop yet — keep listening
     if (!userStoppedManually) {
-      if (isListening) { try { recognition.start(); } catch(e) {} }
+      if (isListening) {
+        try { recognition.start(); } catch(e) {}
+      }
       return;
     }
 
+    // User clicked stop — proceed with bot response
     isListening = false;
+    micBtn.classList.remove('listening');
+    micBtn.innerHTML = MIC_ICON;
+
     const textEl = document.getElementById('chatSpeakerText');
     const spokenText = accumulatedText.trim() || ((textEl && textEl.textContent.trim() !== '...') ? textEl.textContent.trim() : '');
     accumulatedText = '';
     userStoppedManually = false;
 
     if (!spokenText) {
-      if (sessionActive) { setWaveState('ambient'); statusText.textContent = '● SESSION ACTIVE — speak now'; statusText.style.color = '#FF007A'; }
-      else { setWaveState('idle'); }
+      statusText.textContent = 'CLICK MIC TO SPEAK';
+      statusText.style.color = '#7c7c9a';
+      setWaveState('idle');
       return;
     }
 
     liveTranscriptEl = null;
+    statusText.textContent = `${activeAgent.name} IS RESPONDING...`;
+    statusText.style.color = '#a855f7';
+    setWaveState('responding');
+    addTyping();
 
-    // Trigger the analyzing → bot response flow
-    triggerAnalyzing();
+    // Get current emotion + intensity
+    const activeEmotionEl = document.querySelector('#emotionGrid .vibe-chip.active');
+    const emotion = activeEmotionEl ? activeEmotionEl.textContent.trim() : 'Friendly';
+    const intensityVal = document.getElementById('emotionIntensity') ? parseInt(document.getElementById('emotionIntensity').value) : 50;
+    const intensityLabel = document.getElementById('emotionIntensityLabel') ? document.getElementById('emotionIntensityLabel').textContent : 'Medium';
+    const lang = getActiveLang();
+    const langNames = { EN:'English', ES:'Spanish', FR:'French', JP:'Japanese', DE:'German', IT:'Italian' };
+    const langName = langNames[lang] || 'English';
+    const agentPersonas = {
+      Maya: 'a warm, empathetic customer support agent named Maya',
+      David: 'an authoritative, confident sales agent named David',
+      Sam: 'a neutral, professional assistant named Sam',
+      Kai: 'a high-energy, enthusiastic agent named Kai',
+    };
+    const persona = agentPersonas[activeAgent.name] || 'a helpful AI voice agent';
+
+    const systemPrompt = `You are ${persona} for Deepdub.ai, an AI voice platform.
+Respond with emotion: ${emotion} at ${intensityLabel} intensity.
+Reply ONLY in ${langName}. Keep your response to 1-2 sentences, natural and conversational.
+Do not use markdown, asterisks, or any formatting — plain spoken text only.`;
+
+    // Smart contextual responses based on what user said + selected language
+    const responses = {
+      EN: [
+        "Great question! I'm here to help you with anything you need.",
+        "Absolutely, let me take care of that for you right away.",
+        "Thank you for reaching out. I completely understand your concern.",
+        "Of course! Our team is dedicated to making sure you succeed.",
+        "I hear you loud and clear. Let me find the best solution for you.",
+        "That's a wonderful point. Here's what I recommend for your situation.",
+      ],
+      ES: [
+        "¡Claro que sí! Estoy aquí para ayudarte con todo lo que necesites.",
+        "Absolutamente, permíteme resolver eso para ti de inmediato.",
+        "Gracias por contactarnos. Entiendo perfectamente tu preocupación.",
+        "¡Por supuesto! Nuestro equipo está dedicado a asegurar tu éxito.",
+        "Te escucho perfectamente. Déjame encontrar la mejor solución.",
+        "Qué buen punto. Aquí está lo que te recomiendo para tu situación.",
+      ],
+      FR: [
+        "Bien sûr! Je suis là pour vous aider avec tout ce dont vous avez besoin.",
+        "Absolument, laissez-moi m'en occuper immédiatement pour vous.",
+        "Merci de nous avoir contactés. Je comprends parfaitement votre préoccupation.",
+        "Bien entendu! Notre équipe est dédiée à assurer votre succès.",
+        "Je vous entends clairement. Laissez-moi trouver la meilleure solution.",
+        "Excellent point. Voici ce que je vous recommande pour votre situation.",
+      ],
+      JP: [
+        "もちろんです！何でもお手伝いします。",
+        "絶対に、すぐに対応いたします。",
+        "ご連絡いただきありがとうございます。ご不安をよく理解しています。",
+        "もちろんです！チーム一丸となってサポートいたします。",
+        "はっきり聞こえています。最善の解決策を見つけます。",
+        "素晴らしいポイントです。状況に合わせてお勧めします。",
+      ],
+      DE: [
+        "Natürlich! Ich bin hier, um Ihnen bei allem zu helfen, was Sie brauchen.",
+        "Absolut, lassen Sie mich das sofort für Sie erledigen.",
+        "Danke, dass Sie uns kontaktiert haben. Ich verstehe Ihr Anliegen vollkommen.",
+        "Selbstverständlich! Unser Team ist darauf ausgerichtet, Ihren Erfolg zu sichern.",
+        "Ich höre Sie deutlich. Lassen Sie mich die beste Lösung finden.",
+        "Ein ausgezeichneter Punkt. Hier ist meine Empfehlung für Ihre Situation.",
+      ],
+      IT: [
+        "Certamente! Sono qui per aiutarti con tutto ciò di cui hai bisogno.",
+        "Assolutamente, lasciami occuparmene subito per te.",
+        "Grazie per averci contattato. Capisco perfettamente la tua preoccupazione.",
+        "Certo! Il nostro team è dedicato ad assicurare il tuo successo.",
+        "Ti sento chiaramente. Lasciami trovare la soluzione migliore.",
+        "Ottimo punto. Ecco cosa ti consiglio per la tua situazione.",
+      ],
+    };
+
+    const pool = responses[lang] || responses['EN'];
+    const resp = pool[Math.floor(Math.random() * pool.length)];
+
+    addChat('bot', resp, lang);
+    speakText(resp, lang);
+    showSpeakerIcon();
+    turnCount++;
+    setWaveState('idle');
+    statusText.textContent = 'CLICK MIC TO SPEAK';
+    statusText.style.color = '#7c7c9a';
   };
 
   recognition.onerror = (e) => {
     isListening = false;
-    if (liveTranscriptEl) liveTranscriptEl = null;
-    if (sessionActive) { setWaveState('ambient'); statusText.textContent = '● SESSION ACTIVE — speak now'; statusText.style.color = '#FF007A'; }
-    else { setWaveState('idle'); statusText.textContent = ''; }
+    micBtn.classList.remove('listening');
+    micBtn.innerHTML = MIC_ICON;
+    if (liveTranscriptEl) liveTranscriptEl.remove();
+    liveTranscriptEl = null;
+    setWaveState('idle');
     if (e.error === 'not-allowed') {
       statusText.textContent = '⚠ Mic permission denied';
-      statusText.style.color = '#f87171';
+    } else {
+      statusText.textContent = 'CLICK MIC TO SPEAK';
     }
+    statusText.style.color = '#7c7c9a';
   };
 }
 
 function toggleMic() {
-  // Legacy — session toggle now handles interaction
-  toggleSession();
+  if (!SpeechRecognition) {
+    alert('Sorry, your browser does not support Speech Recognition.\nPlease use Chrome or Edge.');
+    return;
+  }
+  if (isListening) {
+    userStoppedManually = true;
+    isListening = false;
+    recognition.stop();
+    return;
+  }
+  userStoppedManually = false;
+  accumulatedText = '';
+  recognition.start();
 }
 
 // Creates a live-updating user bubble
