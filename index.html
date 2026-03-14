@@ -62,7 +62,7 @@ tailwind.config = {
   /* Vibe chips */
   .vibe-chip { cursor: pointer; border: 1px solid #222230; border-radius: 999px; padding: 6px 16px; font-size: 13px; transition: all 0.2s; color: #9090b0; }
   .vibe-chip:hover { border-color: rgba(255,0,122,0.4); color: #e8e8f0; }
-  .vibe-chip.active { background: linear-gradient(135deg, rgba(255,0,122,0.15), rgba(123,47,255,0.1)); border-color: #FF007A; color: #FF007A; }
+  .vibe-chip.active { background: linear-gradient(135deg, rgba(255,0,122,0.15), rgba(123,47,255,0.1)); border-color: #FF007A; color: #FF007A; box-shadow: 0 0 10px rgba(255,0,122,0.35), 0 0 0 1px #FF007A; }
 
   /* Language flags */
   .lang-chip { cursor: pointer; border: 1px solid #222230; border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; transition: all 0.2s; text-align: center; color: #9090b0; }
@@ -249,6 +249,15 @@ tailwind.config = {
         <canvas id="waveCanvas" style="display:block;width:100%;"></canvas>
         <!-- Glow layer -->
         <div style="position:absolute;inset:0;pointer-events:none;border-radius:20px;box-shadow:inset 0 0 60px rgba(168,85,247,0.08);"></div>
+        <!-- Tone Toast -->
+        <div id="toneToast" style="
+          display:none;position:absolute;top:12px;left:50%;transform:translateX(-50%);
+          background:rgba(13,13,18,0.88);border:1px solid #FF007A;border-radius:999px;
+          padding:5px 16px;white-space:nowrap;
+          font-size:11px;font-weight:700;letter-spacing:0.1em;color:#FF007A;
+          backdrop-filter:blur(8px);
+          transition:opacity 0.3s ease;
+        "></div>
       </div>
 
       <!-- Status + Toggle Button -->
@@ -430,6 +439,11 @@ const LAYERS = [
 ];
 
 function getLayerColors(layerIndex, state) {
+  // Emotion override — applies during active/responding states
+  if (typeof emotionLayerOverride !== 'undefined' && emotionLayerOverride &&
+      (state === 'responding' || state === 'ambient' || state === 'listening' || state === 'analyzing')) {
+    return emotionLayerOverride[layerIndex] || emotionLayerOverride[0];
+  }
   // Idle: cool purple-blue, Listening: pink-purple, Responding: blue-pink-neon
   if (state === 'idle') {
     const cols = [
@@ -609,7 +623,7 @@ let turnCount = 1;
 const chatLog = { appendChild: ()=>{}, scrollTop: 0, scrollHeight: 0 }; // chat removed
 const statusText = document.getElementById('statusText');
 
-const BOT_RESPONSE_SENTENCE = "I understand. I am now adjusting my tone to be more empathetic while I translate your message into Spanish. How does that sound?";
+const BOT_RESPONSE_SENTENCE = "Let's put Deepdub to the test with a real-world high-pressure scenario. I will act as a Flight Service Representative, and you will be an angry customer whose flight was just cancelled and is demanding an immediate refund. I'll start in a calm, empathetic tone—feel free to change my language or emotion mid-conversation to see how I adapt. Ready? Let's begin.";
 const BOT_RESPONSE_DURATION_MS = 5000; // exactly 5 seconds
 
 function setToggleIdle() {
@@ -699,9 +713,7 @@ function triggerUserInput() {
 function triggerAnalyzing() {
   if (!sessionActive) return;
 
-  // 2-second AI analyzing state
   setWaveState('analyzing');
-  showAiAnalyzing(true);
   statusText.textContent = '';
 
   const textEl = document.getElementById('chatSpeakerText');
@@ -709,9 +721,8 @@ function triggerAnalyzing() {
 
   conversationLoopTimeout = setTimeout(() => {
     if (!sessionActive) return;
-    showAiAnalyzing(false);
     triggerBotResponse();
-  }, 2000);
+  }, 1500);
 }
 
 function triggerBotResponse() {
@@ -1079,13 +1090,131 @@ function updateTone(val) {
   bars.forEach(bar => applyToneColor(bar));
 }
 
+// ===== EMOTION CONFIG =====
+const emotionConfig = {
+  'Empathy': {
+    text: "Switching to an empathetic tone. I'm here to listen and provide the support your customers deserve.",
+    waveColors: [['#FF007A','#FF6AB0'],['#FF6AB0','#f472b6'],['#FF007A','#FF3D9A'],['#f472b6','#FF007A']],
+    chipColor: '#FF007A',
+    label: 'EMPATHY',
+  },
+  'Confidence': {
+    text: "Increasing confidence levels. I will now speak with more authority and professional certainty.",
+    waveColors: [['#00C2FF','#0284c7'],['#0284c7','#7B2FFF'],['#00C2FF','#38bdf8'],['#7B2FFF','#00C2FF']],
+    chipColor: '#00C2FF',
+    label: 'CONFIDENCE',
+  },
+  'Enthusiasm': {
+    text: "Boosting enthusiasm! Let's bring some high energy and excitement to this conversation.",
+    waveColors: [['#fb923c','#fbbf24'],['#fbbf24','#fb923c'],['#f97316','#fbbf24'],['#fb923c','#f97316']],
+    chipColor: '#fb923c',
+    label: 'ENTHUSIASM',
+  },
+  'Apologetic': {
+    text: "Transitioning to an apologetic tone. I'll focus on being sincere and solution-oriented.",
+    waveColors: [['#a78bfa','#7B2FFF'],['#7B2FFF','#a78bfa'],['#c4b5fd','#a78bfa'],['#a78bfa','#c4b5fd']],
+    chipColor: '#a78bfa',
+    label: 'APOLOGETIC',
+  },
+  'Friendly': {
+    text: "Activating friendly mode. I'll keep the vibe warm and approachable.",
+    waveColors: [['#4ade80','#22d3ee'],['#22d3ee','#4ade80'],['#34d399','#22d3ee'],['#4ade80','#34d399']],
+    chipColor: '#4ade80',
+    label: 'FRIENDLY',
+  },
+};
+
+// Override layer colors per active emotion (null = use default state colors)
+let emotionLayerOverride = null;
+let toneToastTimeout = null;
+
+function showToneToast(label, chipColor) {
+  const toast = document.getElementById('toneToast');
+  if (!toast) return;
+  clearTimeout(toneToastTimeout);
+  toast.textContent = `● TONE UPDATED: ${label}`;
+  toast.style.borderColor = chipColor;
+  toast.style.color = chipColor;
+  toast.style.display = 'block';
+  toast.style.opacity = '1';
+  toneToastTimeout = setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => { toast.style.display = 'none'; }, 300);
+  }, 2500);
+}
+
 // ===== EMOTION CHIPS =====
 function selectEmotion(el) {
-  document.querySelectorAll('#emotionGrid .vibe-chip').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('#emotionGrid .vibe-chip').forEach(c => {
+    c.classList.remove('active');
+    c.style.borderColor = '';
+    c.style.color = '';
+    c.style.boxShadow = '';
+  });
   el.classList.add('active');
+
   // Reset slider to medium on each new selection
   const slider = document.getElementById('emotionIntensity');
   if (slider) { slider.value = 50; updateEmotionIntensity(50); }
+
+  // Get emotion name (strip emoji)
+  const rawText = el.textContent.trim();
+  const emotionName = Object.keys(emotionConfig).find(k => rawText.includes(k)) || 'Friendly';
+  const cfg = emotionConfig[emotionName];
+
+  // Apply per-emotion chip color
+  el.style.borderColor = cfg.chipColor;
+  el.style.color = cfg.chipColor;
+  el.style.boxShadow = `0 0 12px ${cfg.chipColor}55, 0 0 0 1px ${cfg.chipColor}`;
+
+  // Set wave color override
+  emotionLayerOverride = cfg.waveColors;
+
+  // Show toast
+  showToneToast(cfg.label, cfg.chipColor);
+
+  // Interrupt any current conversation loop & fire bot response immediately
+  clearTimeout(conversationLoopTimeout);
+  clearTimeout(botResponseTimeout);
+  showAiAnalyzing(false);
+  window.speechSynthesis.cancel();
+
+  triggerEmotionBotResponse(cfg.text, cfg.chipColor);
+}
+
+function triggerEmotionBotResponse(text, chipColor) {
+  const lang = getActiveLang();
+
+  setWaveState('responding');
+  statusText.textContent = `${activeAgent.name.toUpperCase()} IS RESPONDING...`;
+  statusText.style.color = chipColor;
+
+  const avatar = document.getElementById('chatSpeakerAvatar');
+  const nameEl = document.getElementById('chatSpeakerName');
+  const textEl = document.getElementById('chatSpeakerText');
+
+  if (avatar) { avatar.style.background = activeAgent.gradient; avatar.textContent = activeAgent.letter; }
+  if (nameEl) { nameEl.textContent = activeAgent.name.toUpperCase() + ' · BOT'; nameEl.style.color = chipColor; }
+  if (textEl) { textEl.textContent = ''; textEl.style.color = '#e2e2f0'; textEl.style.fontStyle = 'normal'; }
+
+  showSpeakerIcon();
+  speakText(text, 'EN'); // Always EN for these system messages
+  typewriterOverDuration(textEl, text, BOT_RESPONSE_DURATION_MS);
+
+  botResponseTimeout = setTimeout(() => {
+    hideSpeakerIcon();
+    window.speechSynthesis.cancel();
+    if (nameEl) nameEl.style.color = '';
+    if (sessionActive) {
+      setWaveState('ambient');
+      statusText.textContent = '● SESSION ACTIVE — speak now';
+      statusText.style.color = '#FF007A';
+      startConversationLoop();
+    } else {
+      setWaveState('idle');
+      statusText.textContent = '';
+    }
+  }, BOT_RESPONSE_DURATION_MS + 300);
 }
 
 function updateEmotionIntensity(val) {
