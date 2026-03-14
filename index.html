@@ -685,7 +685,7 @@ function endSession() {
   if (recognition) { try { userStoppedManually = true; recognition.stop(); } catch(e) {} }
   window.speechSynthesis.cancel();
   stopSynthKeepAlive();
-  stopMicAnalyser();
+  teardownMicAnalyser();
   setToggleIdle();
   setWaveState('idle');
   statusText.textContent = '';
@@ -764,7 +764,7 @@ function triggerBotResponse(isIntro) {
     if (!sessionActive) return;
     hideSpeakerIcon();
     setWaveState('ambient');
-    statusText.textContent = '● YOUR TURN — speak now';
+    statusText.textContent = '';
     statusText.style.color = '#FF007A';
     turnCount++;
     // Auto-start listening after bot finishes
@@ -1065,47 +1065,67 @@ let micAudioCtx = null;
 let micAnalyser = null;
 let micStream = null;
 let micAnimFrame = null;
+let micAnalyserReady = false;
 
 function startMicAnalyser() {
+  // If already running, just resume
+  if (micAnalyserReady && micAudioCtx) {
+    if (micAudioCtx.state === 'suspended') micAudioCtx.resume();
+    driveMicWave();
+    return;
+  }
   if (!navigator.mediaDevices) return;
   navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(stream => {
     micStream = stream;
     micAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = micAudioCtx.createMediaStreamSource(stream);
-    micAnalyser = micAudioCtx.createAnalyser();
-    micAnalyser.fftSize = 256;
-    micAnalyser.smoothingTimeConstant = 0.7;
-    source.connect(micAnalyser);
-    driveMicWave();
-  }).catch(() => {
-    // No mic access — waveform falls back to static animation
-  });
+    micAudioCtx.resume().then(() => {
+      const source = micAudioCtx.createMediaStreamSource(stream);
+      micAnalyser = micAudioCtx.createAnalyser();
+      micAnalyser.fftSize = 1024;
+      micAnalyser.smoothingTimeConstant = 0.5;
+      source.connect(micAnalyser);
+      micAnalyserReady = true;
+      driveMicWave();
+    });
+  }).catch(() => {});
 }
 
 function driveMicWave() {
-  if (!micAnalyser) return;
+  cancelAnimationFrame(micAnimFrame);
+  if (!micAnalyser || !micAnalyserReady) return;
+
   const data = new Uint8Array(micAnalyser.frequencyBinCount);
-  micAnalyser.getByteFrequencyData(data);
-  // Average the lower frequency bins (voice range)
-  let sum = 0;
-  const bins = Math.floor(data.length / 3);
-  for (let i = 0; i < bins; i++) sum += data[i];
-  const avg = sum / bins / 255; // 0–1
 
-  // Only override amplitude when actually listening
-  if (waveState === 'listening') {
-    waveAmplitudeTarget = 0.15 + avg * 0.75; // range 0.15–0.9
-    waveSpeedTarget = 0.018 + avg * 0.02;
-  }
+  const loop = () => {
+    micAnimFrame = requestAnimationFrame(loop);
+    micAnalyser.getByteFrequencyData(data);
 
-  micAnimFrame = requestAnimationFrame(driveMicWave);
+    if (waveState === 'listening') {
+      // Sum all bins for max sensitivity
+      let sum = 0;
+      for (let i = 0; i < data.length; i++) sum += data[i];
+      const avg = sum / data.length / 255;
+      // Amplify — even quiet speech should move the wave
+      const boosted = Math.min(1, avg * 4);
+      waveAmplitudeTarget = 0.1 + boosted * 0.8;
+      waveSpeedTarget = 0.015 + boosted * 0.025;
+    }
+  };
+  loop();
 }
 
 function stopMicAnalyser() {
   cancelAnimationFrame(micAnimFrame);
+  micAnimFrame = null;
+  // Don't destroy stream/context — keep for reuse
+}
+
+function teardownMicAnalyser() {
+  cancelAnimationFrame(micAnimFrame);
   if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
   if (micAudioCtx) { try { micAudioCtx.close(); } catch(e) {} micAudioCtx = null; }
   micAnalyser = null;
+  micAnalyserReady = false;
 }
 
 function startListening() {
