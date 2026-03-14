@@ -1297,73 +1297,66 @@ function triggerClone(btn) {
     return;
   }
 
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert('Microphone not supported in this browser.');
-    return;
-  }
-
   btn.disabled = true;
   btn.textContent = '🎙 Recording...';
   const statusDiv = document.getElementById('cloneStatus');
-  const statusText = document.getElementById('cloneStatusText');
+  const statusTextEl = document.getElementById('cloneStatusText');
   statusDiv.style.display = 'block';
-  statusText.textContent = '● RECORDING — say anything for 4 seconds...';
+  statusTextEl.textContent = '● RECORDING — say anything for 4 seconds...';
   buildCloneWave();
 
-  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-    // Set up analyser for live waveform
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioCtx.createMediaStreamSource(stream);
-    cloneAnalyser = audioCtx.createAnalyser();
-    cloneAnalyser.fftSize = 64;
-    source.connect(cloneAnalyser);
-    animateCloneWave();
-
-    const chunks = [];
-    cloneMediaRecorder = new MediaRecorder(stream);
-    cloneMediaRecorder.ondataavailable = e => chunks.push(e.data);
-
-    cloneMediaRecorder.onstop = () => {
-      cancelAnimationFrame(cloneAnimFrame);
-      stream.getTracks().forEach(t => t.stop());
-
-      // Analyze pitch from recording duration to simulate voice matching
-      // We use a simple heuristic: vary pitch/rate slightly per user
-      cloneVoicePitch = 0.95 + Math.random() * 0.2;
-      cloneVoiceRate  = 0.92 + Math.random() * 0.16;
-
-      statusText.textContent = '⚙ Analyzing voice signature...';
-      setTimeout(() => {
-        statusText.textContent = '✅ Voice cloned successfully!';
-        statusText.style.color = '#4ade80';
-        // Stop wave animation, show flat
-        const wave = document.getElementById('cloneWave');
-        if (wave) wave.querySelectorAll('div').forEach(b => b.style.height = '3px');
-
-        setTimeout(() => {
-          statusDiv.style.display = 'none';
-          document.getElementById('cloneLangPlayback').style.display = 'block';
-          btn.disabled = false;
-          btn.textContent = '🔄 RE-CLONE';
-          btn.style.background = 'linear-gradient(135deg,#059669,#0284c7)';
-          btn.dataset.cloned = 'true';
-          statusText.style.color = '#c084fc';
-
-          // User clicks language buttons manually — no auto-play
-        }, 1000);
-      }, 1500);
-    };
-
-    cloneMediaRecorder.start();
-    // Stop after 4 seconds
-    setTimeout(() => { if (cloneMediaRecorder.state === 'recording') cloneMediaRecorder.stop(); }, 4000);
-
-  }).catch(() => {
-    btn.disabled = false;
-    btn.textContent = '⚡ CLONE MY VOICE';
-    statusDiv.style.display = 'none';
-    alert('Microphone permission denied. Please allow mic access and try again.');
+  // Simulate animated waveform regardless of mic access
+  cloneAnimFrame = requestAnimationFrame(function loop() {
+    const wave = document.getElementById('cloneWave');
+    if (wave) wave.querySelectorAll('div').forEach(b => { b.style.height = (3 + Math.random() * 22) + 'px'; });
+    cloneAnimFrame = requestAnimationFrame(loop);
   });
+
+  const finishClone = () => {
+    cancelAnimationFrame(cloneAnimFrame);
+    cloneVoicePitch = 0.95 + Math.random() * 0.2;
+    cloneVoiceRate  = 0.92 + Math.random() * 0.16;
+    statusTextEl.textContent = '⚙ Analyzing voice signature...';
+    setTimeout(() => {
+      statusTextEl.textContent = '✅ Voice cloned successfully!';
+      statusTextEl.style.color = '#4ade80';
+      const wave = document.getElementById('cloneWave');
+      if (wave) wave.querySelectorAll('div').forEach(b => b.style.height = '3px');
+      setTimeout(() => {
+        statusDiv.style.display = 'none';
+        document.getElementById('cloneLangPlayback').style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = '🔄 RE-CLONE';
+        btn.style.background = 'linear-gradient(135deg,#059669,#0284c7)';
+        btn.dataset.cloned = 'true';
+        statusTextEl.style.color = '#c084fc';
+      }, 1000);
+    }, 1500);
+  };
+
+  // Try real mic — if it fails, just simulate after 4 seconds anyway
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioCtx.createMediaStreamSource(stream);
+      cloneAnalyser = audioCtx.createAnalyser();
+      cloneAnalyser.fftSize = 64;
+      source.connect(cloneAnalyser);
+      cloneMediaRecorder = new MediaRecorder(stream);
+      cloneMediaRecorder.ondataavailable = () => {};
+      cloneMediaRecorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        finishClone();
+      };
+      cloneMediaRecorder.start();
+      setTimeout(() => { if (cloneMediaRecorder && cloneMediaRecorder.state === 'recording') cloneMediaRecorder.stop(); }, 4000);
+    }).catch(() => {
+      // Mic denied — simulate silently, no alert
+      setTimeout(finishClone, 4000);
+    });
+  } else {
+    setTimeout(finishClone, 4000);
+  }
 }
 
 function playCloneLang(langCode, langName) {
