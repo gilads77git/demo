@@ -763,9 +763,11 @@ function triggerBotResponse(isIntro) {
     if (!sessionActive) return;
     hideSpeakerIcon();
     setWaveState('ambient');
-    statusText.textContent = '● YOUR TURN — click mic to speak';
+    statusText.textContent = '● YOUR TURN — speak now';
     statusText.style.color = '#FF007A';
     turnCount++;
+    // Auto-start listening after bot finishes
+    startListening();
   }, duration + 300);
 }
 
@@ -1025,43 +1027,47 @@ if (SpeechRecognition) {
   };
 
   recognition.onend = () => {
-    if (!userStoppedManually) {
-      if (isListening) { try { recognition.start(); } catch(e) {} }
-      return;
-    }
-
     isListening = false;
+
+    // If session ended, do nothing
+    if (!sessionActive) return;
+
     const textEl = document.getElementById('chatSpeakerText');
-    const spokenText = accumulatedText.trim() || ((textEl && textEl.textContent.trim() !== '...') ? textEl.textContent.trim() : '');
+    const spokenText = accumulatedText.trim();
     accumulatedText = '';
     userStoppedManually = false;
 
     if (!spokenText) {
-      if (sessionActive) { setWaveState('ambient'); statusText.textContent = '● SESSION ACTIVE — speak now'; statusText.style.color = '#FF007A'; }
-      else { setWaveState('idle'); }
+      // Nothing was said — restart listening
+      setTimeout(startListening, 300);
       return;
     }
 
     liveTranscriptEl = null;
-
-    // Trigger the analyzing → bot response flow
     triggerAnalyzing();
   };
 
   recognition.onerror = (e) => {
     isListening = false;
-    if (liveTranscriptEl) liveTranscriptEl = null;
-    if (sessionActive) { setWaveState('ambient'); statusText.textContent = '● SESSION ACTIVE — speak now'; statusText.style.color = '#FF007A'; }
-    else { setWaveState('idle'); statusText.textContent = ''; }
     if (e.error === 'not-allowed') {
       statusText.textContent = '⚠ Mic permission denied';
       statusText.style.color = '#f87171';
+      return;
     }
+    // Non-fatal — restart listening if session active
+    if (sessionActive) setTimeout(startListening, 500);
   };
 }
 
+function startListening() {
+  if (!sessionActive || isListening) return;
+  if (!SpeechRecognition) return;
+  accumulatedText = '';
+  userStoppedManually = false;
+  try { recognition.start(); } catch(e) {}
+}
+
 function toggleMic() {
-  // Legacy — session toggle now handles interaction
   toggleSession();
 }
 
