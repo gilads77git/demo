@@ -670,7 +670,7 @@ function toggleSession() {
     setWaveState('ambient');
     statusText.textContent = '● SESSION ACTIVE — speak now';
     statusText.style.color = '#FF007A';
-    // Small delay to let audio unlock settle
+    startMicAnalyser();
     setTimeout(startConversationLoop, 300);
   } else {
     endSession();
@@ -685,6 +685,7 @@ function endSession() {
   if (recognition) { try { userStoppedManually = true; recognition.stop(); } catch(e) {} }
   window.speechSynthesis.cancel();
   stopSynthKeepAlive();
+  stopMicAnalyser();
   setToggleIdle();
   setWaveState('idle');
   statusText.textContent = '';
@@ -1057,6 +1058,54 @@ if (SpeechRecognition) {
     // Non-fatal — restart listening if session active
     if (sessionActive) setTimeout(startListening, 500);
   };
+}
+
+// ===== MIC AUDIO ANALYSER — drives waveform from real mic volume =====
+let micAudioCtx = null;
+let micAnalyser = null;
+let micStream = null;
+let micAnimFrame = null;
+
+function startMicAnalyser() {
+  if (!navigator.mediaDevices) return;
+  navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(stream => {
+    micStream = stream;
+    micAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = micAudioCtx.createMediaStreamSource(stream);
+    micAnalyser = micAudioCtx.createAnalyser();
+    micAnalyser.fftSize = 256;
+    micAnalyser.smoothingTimeConstant = 0.7;
+    source.connect(micAnalyser);
+    driveMicWave();
+  }).catch(() => {
+    // No mic access — waveform falls back to static animation
+  });
+}
+
+function driveMicWave() {
+  if (!micAnalyser) return;
+  const data = new Uint8Array(micAnalyser.frequencyBinCount);
+  micAnalyser.getByteFrequencyData(data);
+  // Average the lower frequency bins (voice range)
+  let sum = 0;
+  const bins = Math.floor(data.length / 3);
+  for (let i = 0; i < bins; i++) sum += data[i];
+  const avg = sum / bins / 255; // 0–1
+
+  // Only override amplitude when actually listening
+  if (waveState === 'listening') {
+    waveAmplitudeTarget = 0.15 + avg * 0.75; // range 0.15–0.9
+    waveSpeedTarget = 0.018 + avg * 0.02;
+  }
+
+  micAnimFrame = requestAnimationFrame(driveMicWave);
+}
+
+function stopMicAnalyser() {
+  cancelAnimationFrame(micAnimFrame);
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  if (micAudioCtx) { try { micAudioCtx.close(); } catch(e) {} micAudioCtx = null; }
+  micAnalyser = null;
 }
 
 function startListening() {
