@@ -411,24 +411,29 @@ let waveState = 'idle';
 let toneValue = 50;
 let waveRafId = null;
 let waveTime = 0;
-let waveAmplitude = 0;       // current amplitude (lerps to target)
-let waveAmplitudeTarget = 0; // target based on state
+let waveAmplitude = 0;
+let waveAmplitudeTarget = 0;
 let waveSpeed = 0.008;
 let waveSpeedTarget = 0.008;
+let emotionLayerOverride = null; // declared here so getLayerColors can reference it
 
-// Resize canvas to match container
+// Resize canvas - called after layout is ready
 function resizeWaveCanvas() {
   const wrap = document.getElementById('waveformWrap');
+  if (!wrap) return;
   const dpr = window.devicePixelRatio || 1;
-  const w = wrap.clientWidth;
+  const w = wrap.clientWidth || 600;
   const h = 200;
   waveCanvas.width  = w * dpr;
   waveCanvas.height = h * dpr;
   waveCanvas.style.height = h + 'px';
+  wCtx.setTransform(1,0,0,1,0,0);
   wCtx.scale(dpr, dpr);
 }
-resizeWaveCanvas();
+// Defer resize until DOM is fully laid out
+window.addEventListener('load', resizeWaveCanvas);
 window.addEventListener('resize', resizeWaveCanvas);
+setTimeout(resizeWaveCanvas, 100);
 
 // Layer config — each layer has its own speed, phase offset, amplitude factor
 const LAYERS = [
@@ -440,7 +445,7 @@ const LAYERS = [
 
 function getLayerColors(layerIndex, state) {
   // Emotion override — applies during active/responding states
-  if (typeof emotionLayerOverride !== 'undefined' && emotionLayerOverride &&
+  if (emotionLayerOverride &&
       (state === 'responding' || state === 'ambient' || state === 'listening' || state === 'analyzing')) {
     return emotionLayerOverride[layerIndex] || emotionLayerOverride[0];
   }
@@ -646,22 +651,27 @@ function showAiAnalyzing(show) {
 }
 
 function toggleSession() {
-  // Mark intro as played so first-click handler doesn't fire
   introPlayed = true;
   document.removeEventListener('click', handleFirstInteraction);
 
   if (!sessionActive) {
-    // Unlock speech synthesis with a silent utterance (required by browsers)
-    const unlock = new SpeechSynthesisUtterance('');
-    unlock.volume = 0;
-    window.speechSynthesis.speak(unlock);
+    // Unlock audio context with a silent utterance (required by browsers)
+    try {
+      const unlock = new SpeechSynthesisUtterance(' ');
+      unlock.volume = 0; unlock.rate = 10;
+      window.speechSynthesis.speak(unlock);
+    } catch(e) {}
+
+    // Make sure canvas is properly sized
+    resizeWaveCanvas();
 
     sessionActive = true;
     setToggleLive();
     setWaveState('ambient');
     statusText.textContent = '● SESSION ACTIVE — speak now';
     statusText.style.color = '#FF007A';
-    startConversationLoop();
+    // Small delay to let audio unlock settle
+    setTimeout(startConversationLoop, 300);
   } else {
     endSession();
   }
@@ -872,59 +882,76 @@ const voiceRetry = setInterval(() => {
   if (cachedVoices.length > 0) clearInterval(voiceRetry);
 }, 100);
 
-let waveAnimFrame = null; // kept for compat
-function animateWaveWhileSpeaking() {} // canvas loop handles this now
+let waveAnimFrame = null;
+function animateWaveWhileSpeaking() {}
+
+// Chrome bug: speechSynthesis pauses after ~15s — keepalive fix
+let synthKeepAlive = null;
+function startSynthKeepAlive() {
+  stopSynthKeepAlive();
+  synthKeepAlive = setInterval(() => {
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }
+  }, 10000);
+}
+function stopSynthKeepAlive() {
+  if (synthKeepAlive) { clearInterval(synthKeepAlive); synthKeepAlive = null; }
+}
 
 function speakText(text, lang) {
   if (!window.speechSynthesis) { hideSpeakerIcon(); return; }
-
   window.speechSynthesis.cancel();
-  cancelAnimationFrame(waveAnimFrame);
+  stopSynthKeepAlive();
 
   const locale = langToLocale[lang] || 'en-US';
+  let attempts = 0;
 
   const trySpeak = () => {
     const voices = window.speechSynthesis.getVoices();
-    if (voices.length === 0) { setTimeout(trySpeak, 200); return; }
+    if (voices.length === 0 && attempts < 20) {
+      attempts++;
+      setTimeout(trySpeak, 150);
+      return;
+    }
 
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = locale;
-    utter.rate = 1.0;
+    utter.rate = 0.95;
     utter.volume = 1.0;
 
     const langCode = locale.split('-')[0];
-    const femaleKeywords = ['female','woman','girl','samantha','victoria','karen','moira','fiona','veena','tessa','allison','ava','susan','zira','helena','paulina','amelie','alice','sara','anna','laura','lekha','sin-ji','mei-jia','kyoko','o-ren','google uk english female'];
-    const maleKeywords = ['male','man','daniel','thomas','alex','fred','jorge','diego','reed','luca','aaron','oliver','rishi','otoya','hans','stefan','pierre'];
+    const femaleKw = ['female','woman','girl','samantha','victoria','karen','moira','fiona','veena','tessa','allison','ava','susan','zira','helena','paulina','amelie','alice','sara','anna','laura','kyoko'];
+    const maleKw   = ['male','man','daniel','thomas','alex','fred','jorge','reed','luca','aaron','oliver','rishi','otoya','hans','stefan','pierre'];
     const langVoices = voices.filter(v => v.lang === locale || v.lang.startsWith(langCode));
-    const allEnVoices = voices.filter(v => v.lang.startsWith('en'));
+    const enVoices   = voices.filter(v => v.lang.startsWith('en'));
     const isMaya = activeAgent.name === 'Maya';
 
     let match;
     if (isMaya) {
-      // Strictly female: keyword match first, then any voice NOT in male keywords
-      match = langVoices.find(v => femaleKeywords.some(k => v.name.toLowerCase().includes(k)))
-           || allEnVoices.find(v => femaleKeywords.some(k => v.name.toLowerCase().includes(k)))
-           || langVoices.find(v => !maleKeywords.some(k => v.name.toLowerCase().includes(k)))
-           || langVoices[0]
-           || voices[0];
-      utter.pitch = 1.25;
+      match = langVoices.find(v => femaleKw.some(k => v.name.toLowerCase().includes(k)))
+           || enVoices.find(v => femaleKw.some(k => v.name.toLowerCase().includes(k)))
+           || langVoices.find(v => !maleKw.some(k => v.name.toLowerCase().includes(k)))
+           || voices.find(v => femaleKw.some(k => v.name.toLowerCase().includes(k)))
+           || langVoices[0] || voices[0];
+      utter.pitch = 1.2;
     } else {
-      match = langVoices.find(v => maleKeywords.some(k => v.name.toLowerCase().includes(k)))
-           || langVoices.find(v => !femaleKeywords.some(k => v.name.toLowerCase().includes(k)))
-           || langVoices[0]
-           || voices[0];
+      match = langVoices.find(v => maleKw.some(k => v.name.toLowerCase().includes(k)))
+           || langVoices.find(v => !femaleKw.some(k => v.name.toLowerCase().includes(k)))
+           || langVoices[0] || voices[0];
       utter.pitch = 0.85;
     }
-
     if (match) utter.voice = match;
 
-    utter.onstart = () => { setWaveState('responding'); };
-    utter.onend = () => { setWaveState('idle'); hideSpeakerIcon(); };
-    utter.onerror = () => { setWaveState('idle'); hideSpeakerIcon(); };
+    utter.onstart = () => { setWaveState('responding'); startSynthKeepAlive(); };
+    utter.onend   = () => { setWaveState('idle'); hideSpeakerIcon(); stopSynthKeepAlive(); };
+    utter.onerror = () => { setWaveState('idle'); hideSpeakerIcon(); stopSynthKeepAlive(); };
+
     window.speechSynthesis.speak(utter);
   };
 
-  setTimeout(trySpeak, 150);
+  setTimeout(trySpeak, 100);
 }
 
 // ===== SPEECH RECOGNITION SETUP =====
@@ -1134,7 +1161,6 @@ const emotionConfig = {
 };
 
 // Override layer colors per active emotion (null = use default state colors)
-let emotionLayerOverride = null;
 let toneToastTimeout = null;
 
 function showToneToast(label, chipColor) {
