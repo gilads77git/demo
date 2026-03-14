@@ -708,7 +708,9 @@ function startConversationLoop() {
 function triggerUserInput() {
   if (!sessionActive) return;
 
-  // Show user speaking — high intensity waveform
+  // If real speech recognition is active, don't override it
+  if (isListening) return;
+
   setWaveState('listening');
   statusText.textContent = '● YOU — speaking';
   statusText.style.color = '#f472b6';
@@ -718,11 +720,22 @@ function triggerUserInput() {
   const textEl = document.getElementById('chatSpeakerText');
   if (avatar) { avatar.style.background = '#1e1e2e'; avatar.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'; }
   if (nameEl) nameEl.textContent = 'YOU · LIVE';
-  if (textEl) { textEl.textContent = '...'; textEl.style.fontStyle = 'italic'; textEl.style.color = '#f472b6'; }
 
-  // Simulate user speaking for 2.5 seconds, then natural pause → AI analyzing
+  // Animate placeholder dots to show listening
+  let dotCount = 0;
+  const dotInterval = setInterval(() => {
+    if (!sessionActive || isListening) { clearInterval(dotInterval); return; }
+    dotCount = (dotCount + 1) % 4;
+    if (textEl && !isListening) textEl.textContent = '●'.repeat(dotCount + 1);
+    textEl.style.fontStyle = 'italic';
+    textEl.style.color = '#f472b6';
+  }, 400);
+
+  // After 2.5s simulate pause → bot responds
   conversationLoopTimeout = setTimeout(() => {
+    clearInterval(dotInterval);
     if (!sessionActive) return;
+    if (isListening) return; // real mic is active, let it handle response
     triggerAnalyzing();
   }, 2500);
 }
@@ -898,18 +911,38 @@ function stopSynthKeepAlive() {
 
 // Split text into short chunks so Chrome doesn't cut off mid-sentence
 function chunkText(text) {
-  const parts = text.split(/(?<=[.!?,])\s+/);
-  const chunks = [];
-  let cur = '';
+  // Normalize em-dashes, split on punctuation and commas
+  const normalized = text
+    .replace(/\s*—\s*/g, ', ')
+    .replace(/([.!?])\s+/g, '$1|')
+    .replace(/,\s+/g, ',|');
+  let parts = normalized.split('|').map(s => s.trim()).filter(Boolean);
+
+  // Further split any part still over 80 chars at a word boundary near the midpoint
+  const finalParts = [];
   for (const p of parts) {
-    if ((cur + ' ' + p).trim().length > 85) {
-      if (cur.trim()) chunks.push(cur.trim());
-      cur = p;
+    if (p.length <= 80) { finalParts.push(p); continue; }
+    const mid = Math.floor(p.length / 2);
+    const spaceAfter  = p.indexOf(' ', mid);
+    const spaceBefore = p.lastIndexOf(' ', mid);
+    const splitAt = (spaceAfter !== -1 && spaceAfter < mid + 15) ? spaceAfter : spaceBefore;
+    if (splitAt > 0) {
+      finalParts.push(p.slice(0, splitAt).trim());
+      finalParts.push(p.slice(splitAt + 1).trim());
     } else {
-      cur = cur ? cur + ' ' + p : p;
+      finalParts.push(p);
     }
   }
-  if (cur.trim()) chunks.push(cur.trim());
+
+  // Merge tiny fragments, keep each chunk under 80 chars
+  const chunks = [];
+  let cur = '';
+  for (const p of finalParts) {
+    const candidate = cur ? cur + ' ' + p : p;
+    if (candidate.length > 80 && cur) { chunks.push(cur); cur = p; }
+    else { cur = candidate; }
+  }
+  if (cur) chunks.push(cur);
   return chunks.length ? chunks : [text];
 }
 
@@ -981,6 +1014,9 @@ if (SpeechRecognition) {
 
   recognition.onstart = () => {
     isListening = true;
+    // Cancel simulated conversation loop - real mic takes over
+    clearTimeout(conversationLoopTimeout);
+    clearTimeout(botResponseTimeout);
     setWaveState('listening');
     statusText.textContent = '● YOU — speaking';
     statusText.style.color = '#f472b6';
@@ -989,7 +1025,7 @@ if (SpeechRecognition) {
     const _tx = document.getElementById('chatSpeakerText');
     if (_av) { _av.style.background = '#1e1e2e'; _av.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'; }
     if (_nm) _nm.textContent = 'YOU · LIVE';
-    if (_tx) { _tx.textContent = '...'; _tx.style.fontStyle = 'italic'; _tx.style.color = '#f472b6'; }
+    if (_tx) { _tx.textContent = ''; _tx.style.fontStyle = 'italic'; _tx.style.color = '#f472b6'; }
     liveTranscriptEl = true;
   };
 
